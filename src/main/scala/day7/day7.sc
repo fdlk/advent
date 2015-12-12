@@ -21,8 +21,7 @@ object day7 {
 
   type Signal = Int
   type State = Map[String, Signal]
-  def asUnsigned(unsignedLong: Int): Signal = unsignedLong.toChar.toInt
-                                                  //> asUnsigned: (unsignedLong: Int)day7.day7.Signal
+  def asUnsigned(i: Int): Signal = i.toChar.toInt //> asUnsigned: (i: Int)day7.day7.Signal
 
   def reduce(state: State, e: String): State = {
     (e match {
