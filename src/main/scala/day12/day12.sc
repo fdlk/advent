@@ -24,20 +24,15 @@ object day12 {
   numbers.findAllMatchIn(input).map { _.toString.toInt }.sum
                                                   //> res0: Int = 156366
 
-  def valueOf(s: String): Int = s match {
-    case numbers() => s.toInt
-    case _         => 0
-  }                                               //> valueOf: (s: String)Int
-
   def sum(tree: Any): Int = tree match {
     case map: Map[String, Any] if map.values.exists { _ == "red" } => 0
     case map: Map[String, Any] => {
-      map.map({ case (k: String, v: Any) => valueOf(k) + sum(v) }).reduceLeft(_ + _)
+      map.map({ case (k: String, v: Any) => sum(k) + sum(v) }).reduceLeft(_ + _)
     }
     case list: List[Any] => {
       list.map({ sum(_) }).reduceLeft(_ + _)
     }
-    case s: String => valueOf(s)
+    case s: String => 0
     case d: Double => d.toInt
   }                                               //> sum: (tree: Any)Int
 
