@@ -2,113 +2,29 @@ package day7
 
 object day7 {
   val dictionaryPath = List("day7", "day7.txt")   //> dictionaryPath  : List[String] = List(day7, day7.txt)
-
-  def loadPackets = {
-    val wordstream = Option {
-      getClass.getClassLoader.getResourceAsStream(dictionaryPath.mkString("/"))
-    } orElse {
-      common.resourceAsStreamFromSrc(dictionaryPath)
-    } getOrElse {
-      sys.error("Could not load word list, dictionary file not found")
-    }
-    try {
-      val s = io.Source.fromInputStream(wordstream)
-      s.getLines.toList
-    } catch {
-      case e: Exception =>
-        println("Could not load word list: " + e)
-        throw e
-    } finally {
-      wordstream.close()
-    }
-  }                                               //> loadPackets: => List[String]
-
-  def asUnsigned(unsignedLong: Int): Int = unsignedLong.toChar.toInt
-                                                  //> asUnsigned: (unsignedLong: Int)Int
+  val wires = common.loadPackets(dictionaryPath)  //> wires  : List[String] = List(NOT dq -> dr, kg OR kf -> kh, ep OR eo -> eq, 3
+                                                  //| 176 -> b, NOT gs -> gt, dd OR do -> dp, eg AND ei -> ej, y AND ae -> ag, jx 
+                                                  //| AND jz -> ka, lf RSHIFT 2 -> lg, z AND aa -> ac, dy AND ej -> el, bj OR bi -
+                                                  //| > bk, kk RSHIFT 3 -> km, NOT cn -> co, gn AND gp -> gq, cq AND cs -> ct, eo 
+                                                  //| LSHIFT 15 -> es, lg OR lm -> ln, dy OR ej -> ek, NOT di -> dj, 1 AND fi -> f
+                                                  //| j, kf LSHIFT 15 -> kj, NOT jy -> jz, NOT ft -> fu, fs AND fu -> fv, NOT hr -
+                                                  //| > hs, ck OR cl -> cm, jp RSHIFT 5 -> js, iv OR jb -> jc, is OR it -> iu, ld 
+                                                  //| OR le -> lf, NOT fc -> fd, NOT dm -> dn, bn OR by -> bz, aj AND al -> am, cd
+                                                  //|  LSHIFT 15 -> ch, jp AND ka -> kc, ci OR ct -> cu, gv AND gx -> gy, de AND d
+                                                  //| k -> dm, x RSHIFT 5 -> aa, et RSHIFT 2 -> eu, x RSHIFT 1 -> aq, ia OR ig -> 
+                                                  //| ih, bk LSHIFT 1 -> ce, y OR ae -> af, NOT ca -> cb, e AND f -> h, ia AND ig 
+                                                  //| -> ii, ck AND cl -> cn, NOT jh -> ji, z OR aa -> ab, 1 AND en -> eo, ib AND 
+                                                  //| ic -> ie, NOT eh -> ei, 
+                                                  //| Output exceeds cutoff limit.
 
   type Signal = Int
   type State = Map[String, Signal]
-
-  trait Eval {
-    def eval(state: State): State
-  }
-
-  case class NumSignalGate(num: Int, name: String) extends Eval {
-    override def eval(state: State): State = {
-      state.updated(name, num)
-    }
-  }
-  
-  case class SignalGate(in: String, name: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s <- state.get(in)
-      } yield state.updated(name, s)
-      newState.getOrElse(state)
-    }
-  }
-
-  case class AndGate(in1: String, in2: String, out: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s1 <- state.get(in1)
-        s2 <- state.get(in2)
-      } yield state.updated(out, asUnsigned(s1 & s2))
-      newState.getOrElse(state)
-    }
-  }
-  
-  case class NumAndGate(s1: Int, in2: String, out: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s2 <- state.get(in2)
-      } yield state.updated(out, asUnsigned(s1 & s2))
-      newState.getOrElse(state)
-    }
-  }
-
-  case class OrGate(in1: String, in2: String, out: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s1 <- state.get(in1)
-        s2 <- state.get(in2)
-      } yield state.updated(out, asUnsigned(s1 | s2))
-      newState.getOrElse(state)
-    }
-  }
-
-  case class RShiftGate(in: String, shift: Int, out: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s1 <- state.get(in)
-      } yield state.updated(out, asUnsigned(s1 >>> shift))
-      newState.getOrElse(state)
-    }
-  }
-
-  case class LShiftGate(in: String, shift: Int, out: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s1 <- state.get(in)
-      } yield state.updated(out, asUnsigned(s1 << shift))
-      newState.getOrElse(state)
-    }
-  }
-
-  case class NotGate(in: String, out: String) extends Eval {
-    override def eval(state: State): State = {
-      val newState: Option[State] = for {
-        s1 <- state.get(in)
-      } yield state.updated(out, asUnsigned(~s1))
-      newState.getOrElse(state)
-    }
-  }
-
+  def asUnsigned(unsignedLong: Int): Signal = unsignedLong.toChar.toInt
+                                                  //> asUnsigned: (unsignedLong: Int)day7.day7.Signal
   val numSignal = """([0-9]+) -> ([a-z]+)""".r    //> numSignal  : scala.util.matching.Regex = ([0-9]+) -> ([a-z]+)
   val signal = """([a-z]+) -> ([a-z]+)""".r       //> signal  : scala.util.matching.Regex = ([a-z]+) -> ([a-z]+)
   val and = """([a-z]+) AND ([a-z]+) -> ([a-z]+)""".r
                                                   //> and  : scala.util.matching.Regex = ([a-z]+) AND ([a-z]+) -> ([a-z]+)
-  
   val numAnd = """([0-9]+) AND ([a-z]+) -> ([a-z]+)""".r
                                                   //> numAnd  : scala.util.matching.Regex = ([0-9]+) AND ([a-z]+) -> ([a-z]+)
   val or = """([a-z]+) OR ([a-z]+) -> ([a-z]+)""".r
@@ -118,40 +34,25 @@ object day7 {
   val rshift = """([a-z]+) RSHIFT ([0-9]+) -> ([a-z]+)""".r
                                                   //> rshift  : scala.util.matching.Regex = ([a-z]+) RSHIFT ([0-9]+) -> ([a-z]+)
   val not = """NOT ([a-z]+) -> ([a-z]+)""".r      //> not  : scala.util.matching.Regex = NOT ([a-z]+) -> ([a-z]+)
-  val gates = loadPackets map { x =>
-    x match {
-      case numSignal(num, name)    => NumSignalGate(num.toInt, name)
-      case signal(in,out) => SignalGate(in, out)
-      case and(in1, in2, out)   => AndGate(in1, in2, out)
-      case numAnd(in1, in2, out)   => NumAndGate(in1.toInt, in2, out)
-      case or(in1, in2, out)    => OrGate(in1, in2, out)
-      case lshift(in, num, out) => LShiftGate(in, num.toInt, out)
-      case rshift(in, num, out) => RShiftGate(in, num.toInt, out)
-      case not(in, out)         => NotGate(in, out)
-    }                                             //> gates  : List[Product with Serializable with day7.day7.Eval] = List(NotGate
-                                                  //| (dq,dr), OrGate(kg,kf,kh), OrGate(ep,eo,eq), NumSignalGate(3176,b), NotGate
-                                                  //| (gs,gt), OrGate(dd,do,dp), AndGate(eg,ei,ej), AndGate(y,ae,ag), AndGate(jx,
-                                                  //| jz,ka), RShiftGate(lf,2,lg), AndGate(z,aa,ac), AndGate(dy,ej,el), OrGate(bj
-                                                  //| ,bi,bk), RShiftGate(kk,3,km), NotGate(cn,co), AndGate(gn,gp,gq), AndGate(cq
-                                                  //| ,cs,ct), LShiftGate(eo,15,es), OrGate(lg,lm,ln), OrGate(dy,ej,ek), NotGate(
-                                                  //| di,dj), NumAndGate(1,fi,fj), LShiftGate(kf,15,kj), NotGate(jy,jz), NotGate(
-                                                  //| ft,fu), AndGate(fs,fu,fv), NotGate(hr,hs), OrGate(ck,cl,cm), RShiftGate(jp,
-                                                  //| 5,js), OrGate(iv,jb,jc), OrGate(is,it,iu), OrGate(ld,le,lf), NotGate(fc,fd)
-                                                  //| , NotGate(dm,dn), OrGate(bn,by,bz), AndGate(aj,al,am), LShiftGate(cd,15,ch)
-                                                  //| , AndGate(jp,ka,kc), OrGate(ci,ct,cu), AndGate(gv,gx,gy), AndGate(de,dk,dm)
-                                                  //| , RShiftGate(x,5,aa), RShiftGate(et,2,eu), RShiftGate(x,1,aq), OrGate(ia,ig
-                                                  //| ,ih), LShiftGate(bk,1,c
-                                                  //| Output exceeds cutoff limit.
-  }
-  
 
-	def reduce(s:State, e:Eval): State = {
-		e.eval(s)
-	}                                         //> reduce: (s: day7.day7.State, e: day7.day7.Eval)day7.day7.State
-  def update(s: State): State = {
- 	 	val updated = gates.foldLeft(s) (reduce)
- 	 	if( s != updated ) update (updated) else updated
-  }                                               //> update: (s: day7.day7.State)day7.day7.State
+  def reduce(state: State, e: String): State = {
+    val newState: Option[State] = e match {
+      case numSignal(num, name)  => Some(state.updated(name, num.toInt))
+      case signal(in, name)      => for { s <- state.get(in) } yield state.updated(name, s)
+      case and(in1, in2, out)    => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 & s2))
+      case numAnd(in1, in2, out) => for { s2 <- state.get(in2) } yield state.updated(out, asUnsigned(in1.toInt & s2))
+      case or(in1, in2, out)     => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 | s2))
+      case rshift(in, num, out)  => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 >>> num.toInt))
+      case lshift(in, num, out)  => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 << num.toInt))
+      case not(in, out)          => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(~s1))
+    }
+    newState.getOrElse(state)
+  }                                               //> reduce: (state: day7.day7.State, e: String)day7.day7.State
 
-	update(Map()) ("a")                       //> res0: day7.day7.Signal = 14710
+  def update(state: State): State = {
+    val updated = wires.foldLeft(state)(reduce)
+    if (state != updated) update(updated) else updated
+  }                                               //> update: (state: day7.day7.State)day7.day7.State
+
+  update(Map())("a")                              //> res0: day7.day7.Signal = 14710
 }
