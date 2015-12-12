@@ -3,29 +3,8 @@ package day12
 import scala.util.parsing.json.JSON
 
 object day12 {
-  val dictionaryPath = List("day12", "day12.txt") //> dictionaryPath  : List[String] = List(day12, day12.txt)
-
-  def lines = {
-    val wordstream = Option {
-      getClass.getClassLoader.getResourceAsStream(dictionaryPath.mkString("/"))
-    } orElse {
-      common.resourceAsStreamFromSrc(dictionaryPath)
-    } getOrElse {
-      sys.error("Could not load word list, dictionary file not found")
-    }
-    try {
-      val s = io.Source.fromInputStream(wordstream)
-      s.getLines.toList
-    } catch {
-      case e: Exception =>
-        println("Could not load word list: " + e)
-        throw e
-    } finally {
-      wordstream.close()
-    }
-  }                                               //> lines: => List[String]
-
-  val input = lines(0)                            //> input  : String = [{"a":{"e":{"e":161,"a":"blue","d":{"e":-14,"a":"red","d":
+  val input = common.loadPackets(List("day12", "day12.txt"))(0)
+                                                  //> input  : String = [{"a":{"e":{"e":161,"a":"blue","d":{"e":-14,"a":"red","d":
                                                   //| {"c":"yellow","a":[-35,0],"b":"orange","d":{"e":70,"a":"green","d":"blue","j
                                                   //| ":12,"c":69,"h":"orange","b":92,"g":"yellow","f":"green","i":121}},"c":"blue
                                                   //| ","h":14,"b":46,"g":62,"f":[179]},"j":{"e":133,"c":"violet","a":"orange","b"
