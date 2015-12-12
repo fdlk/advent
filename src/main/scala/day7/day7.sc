@@ -3,8 +3,8 @@ package day7
 import common._
 
 object day7 {
-  val dictionaryPath = List("day7", "day7.txt")   //> dictionaryPath  : List[String] = List(day7, day7.txt)
-  val wires = common.loadPackets(dictionaryPath)  //> wires  : List[String] = List(NOT dq -> dr, kg OR kf -> kh, ep OR eo -> eq, 3
+  val wires = common.loadPackets(List("day7", "day7.txt") )
+                                                  //> wires  : List[String] = List(NOT dq -> dr, kg OR kf -> kh, ep OR eo -> eq, 3
                                                   //| 176 -> b, NOT gs -> gt, dd OR do -> dp, eg AND ei -> ej, y AND ae -> ag, jx 
                                                   //| AND jz -> ka, lf RSHIFT 2 -> lg, z AND aa -> ac, dy AND ej -> el, bj OR bi -
                                                   //| > bk, kk RSHIFT 3 -> km, NOT cn -> co, gn AND gp -> gq, cq AND cs -> ct, eo 
