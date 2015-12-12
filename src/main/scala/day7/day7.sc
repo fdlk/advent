@@ -25,7 +25,7 @@ object day7 {
                                                   //> asUnsigned: (unsignedLong: Int)day7.day7.Signal
 
   def reduce(state: State, e: String): State = {
-    val newState: Option[State] = e match {
+    (e match {
       case r"([0-9]+)$num -> ([a-z]+)$name"                   => Some(state.updated(name, num.toInt))
       case r"([a-z]+)$in -> ([a-z]+)$name"                    => for { s <- state.get(in) } yield state.updated(name, s)
       case r"([a-z]+)$in1 AND ([a-z]+)$in2 -> ([a-z]+)$out"   => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 & s2))
@@ -34,8 +34,7 @@ object day7 {
       case r"([a-z]+)$in RSHIFT ([0-9]+)$num -> ([a-z]+)$out" => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 >>> num.toInt))
       case r"([a-z]+)$in LSHIFT ([0-9]+)$num -> ([a-z]+)$out" => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 << num.toInt))
       case r"NOT ([a-z]+)$in -> ([a-z]+)$out"                 => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(~s1))
-    }
-    newState.getOrElse(state)
+    }).getOrElse(state)
   }                                               //> reduce: (state: day7.day7.State, e: String)day7.day7.State
 
   def update(state: State): State = {
