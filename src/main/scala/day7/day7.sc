@@ -21,30 +21,20 @@ object day7 {
   type State = Map[String, Signal]
   def asUnsigned(unsignedLong: Int): Signal = unsignedLong.toChar.toInt
                                                   //> asUnsigned: (unsignedLong: Int)day7.day7.Signal
-  val numSignal = """([0-9]+) -> ([a-z]+)""".r    //> numSignal  : scala.util.matching.Regex = ([0-9]+) -> ([a-z]+)
-  val signal = """([a-z]+) -> ([a-z]+)""".r       //> signal  : scala.util.matching.Regex = ([a-z]+) -> ([a-z]+)
-  val and = """([a-z]+) AND ([a-z]+) -> ([a-z]+)""".r
-                                                  //> and  : scala.util.matching.Regex = ([a-z]+) AND ([a-z]+) -> ([a-z]+)
-  val numAnd = """([0-9]+) AND ([a-z]+) -> ([a-z]+)""".r
-                                                  //> numAnd  : scala.util.matching.Regex = ([0-9]+) AND ([a-z]+) -> ([a-z]+)
-  val or = """([a-z]+) OR ([a-z]+) -> ([a-z]+)""".r
-                                                  //> or  : scala.util.matching.Regex = ([a-z]+) OR ([a-z]+) -> ([a-z]+)
-  val lshift = """([a-z]+) LSHIFT ([0-9]+) -> ([a-z]+)""".r
-                                                  //> lshift  : scala.util.matching.Regex = ([a-z]+) LSHIFT ([0-9]+) -> ([a-z]+)
-  val rshift = """([a-z]+) RSHIFT ([0-9]+) -> ([a-z]+)""".r
-                                                  //> rshift  : scala.util.matching.Regex = ([a-z]+) RSHIFT ([0-9]+) -> ([a-z]+)
-  val not = """NOT ([a-z]+) -> ([a-z]+)""".r      //> not  : scala.util.matching.Regex = NOT ([a-z]+) -> ([a-z]+)
+  implicit class Regex(sc: StringContext) {
+    def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ => "x"): _*)
+  }
 
   def reduce(state: State, e: String): State = {
     val newState: Option[State] = e match {
-      case numSignal(num, name)  => Some(state.updated(name, num.toInt))
-      case signal(in, name)      => for { s <- state.get(in) } yield state.updated(name, s)
-      case and(in1, in2, out)    => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 & s2))
-      case numAnd(in1, in2, out) => for { s2 <- state.get(in2) } yield state.updated(out, asUnsigned(in1.toInt & s2))
-      case or(in1, in2, out)     => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 | s2))
-      case rshift(in, num, out)  => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 >>> num.toInt))
-      case lshift(in, num, out)  => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 << num.toInt))
-      case not(in, out)          => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(~s1))
+      case r"([0-9]+)$num -> ([a-z]+)$name"                   => Some(state.updated(name, num.toInt))
+      case r"([a-z]+)$in -> ([a-z]+)$name"                    => for { s <- state.get(in) } yield state.updated(name, s)
+      case r"([a-z]+)$in1 AND ([a-z]+)$in2 -> ([a-z]+)$out"   => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 & s2))
+      case r"([0-9]+)$in1 AND ([a-z]+)$in2 -> ([a-z]+)$out"   => for { s2 <- state.get(in2) } yield state.updated(out, asUnsigned(in1.toInt & s2))
+      case r"([a-z]+)$in1 OR ([a-z]+)$in2 -> ([a-z]+)$out"    => for { s1 <- state.get(in1); s2 <- state.get(in2) } yield state.updated(out, asUnsigned(s1 | s2))
+      case r"([a-z]+)$in RSHIFT ([0-9]+)$num -> ([a-z]+)$out" => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 >>> num.toInt))
+      case r"([a-z]+)$in LSHIFT ([0-9]+)$num -> ([a-z]+)$out" => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(s1 << num.toInt))
+      case r"NOT ([a-z]+)$in -> ([a-z]+)$out"                 => for { s1 <- state.get(in) } yield state.updated(out, asUnsigned(~s1))
     }
     newState.getOrElse(state)
   }                                               //> reduce: (state: day7.day7.State, e: String)day7.day7.State
