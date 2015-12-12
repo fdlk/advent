@@ -1,5 +1,7 @@
 package day7
 
+import common._
+
 object day7 {
   val dictionaryPath = List("day7", "day7.txt")   //> dictionaryPath  : List[String] = List(day7, day7.txt)
   val wires = common.loadPackets(dictionaryPath)  //> wires  : List[String] = List(NOT dq -> dr, kg OR kf -> kh, ep OR eo -> eq, 3
@@ -21,9 +23,6 @@ object day7 {
   type State = Map[String, Signal]
   def asUnsigned(unsignedLong: Int): Signal = unsignedLong.toChar.toInt
                                                   //> asUnsigned: (unsignedLong: Int)day7.day7.Signal
-  implicit class Regex(sc: StringContext) {
-    def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ => "x"): _*)
-  }
 
   def reduce(state: State, e: String): State = {
     val newState: Option[State] = e match {

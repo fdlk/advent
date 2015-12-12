@@ -38,6 +38,10 @@ package object common {
       None
   }
   
+  implicit class Regex(sc: StringContext) {
+    def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ => "x"): _*)
+  }
+  
   def loadPackets(dictionaryPath:List[String]) = {
     val wordstream = Option {
       getClass.getClassLoader.getResourceAsStream(dictionaryPath.mkString("/"))
