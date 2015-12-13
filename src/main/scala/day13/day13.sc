@@ -1,36 +1,48 @@
 package day13
 
 import common._
+import scala.collection.mutable.MultiMap
 
 object day13 {
 
   type Guest = String
-  case class Happiness(guests: Set[Guest], difference: Int)
 
-  val rules = common.loadPackets(List("day13", "day13.txt")).map { line =>
-    line match {
-      case r"""(\w+)$guest would gain ([0-9]+)$difference happiness units by sitting next to (\w+)$nextTo.""" =>
-        Happiness(Set(guest, nextTo), difference.toInt)
-      case r"""(\w+)$guest would lose ([0-9]+)$difference happiness units by sitting next to (\w+)$nextTo.""" =>
-        Happiness(Set(guest, nextTo), -difference.toInt)
+  val gain = """(\w+) would gain ([0-9]+) happiness units by sitting next to (\w+).""".r
+                                                  //> gain  : scala.util.matching.Regex = (\w+) would gain ([0-9]+) happiness unit
+                                                  //| s by sitting next to (\w+).
+  val lose = """(\w+) would lose ([0-9]+) happiness units by sitting next to (\w+).""".r
+                                                  //> lose  : scala.util.matching.Regex = (\w+) would lose ([0-9]+) happiness unit
+                                                  //| s by sitting next to (\w+).
+
+  def parse(line: String) = line match {
+    case gain(guest, difference, nextTo) => (Set(guest, nextTo) -> difference.toInt)
+    case lose(guest, difference, nextTo) => (Set(guest, nextTo) -> -difference.toInt)
+  }                                               //> parse: (line: String)(scala.collection.immutable.Set[String], Int)
+
+  def combineRules(rules:Map[Set[Guest],Int], rule:(Set[Guest], Int)) = {
+    rule match {
+      case (guests, diff) => rules.updated(guests, rules.getOrElse(guests, 0) + diff)
     }
-  }.toList                                        //> rules  : List[day13.day13.Happiness] = List(Happiness(Set(Alice, Bob),2), Ha
-                                                  //| ppiness(Set(Alice, Carol),26), Happiness(Set(Alice, David),-82), Happiness(S
-                                                  //| et(Alice, Eric),-75), Happiness(Set(Alice, Frank),42), Happiness(Set(Alice, 
-                                                  //| George),38), Happiness(Set(Alice, Mallory),39), Happiness(Set(Bob, Alice),40
-                                                  //| ), Happiness(Set(Bob, Carol),-61), Happiness(Set(Bob, David),-15), Happiness
-                                                  //| (Set(Bob, Eric),63), Happiness(Set(Bob, Frank),41), Happiness(Set(Bob, Georg
-                                                  //| e),30), Happiness(Set(Bob, Mallory),87), Happiness(Set(Carol, Alice),-35), H
-                                                  //| appiness(Set(Carol, Bob),-99), Happiness(Set(Carol, David),-51), Happiness(S
-                                                  //| et(Carol, Eric),95), Happiness(Set(Carol, Frank),90), Happiness(Set(Carol, G
-                                                  //| eorge),-16), Happiness(Set(Carol, Mallory),94), Happiness(Set(David, Alice),
-                                                  //| 36), Happiness(Set(David, Bob),-18), Happiness(Set(David, Carol),-65), Happi
-                                                  //| ness(Set(David, Eric),-18), Happiness(Set(David, Frank),-22), Happiness(Set(
-                                                  //| David, George),2), Happi
-                                                  //| Output exceeds cutoff limit.
+  }                                               //> combineRules: (rules: Map[Set[day13.day13.Guest],Int], rule: (Set[day13.day1
+                                                  //| 3.Guest], Int))scala.collection.immutable.Map[Set[day13.day13.Guest],Int]
 
-  val guests = (rules flatMap { _.guests }).toSet //> guests  : scala.collection.immutable.Set[day13.day13.Guest] = Set(Carol, Geo
-                                                  //| rge, Bob, Frank, Eric, Alice, David, Mallory)
+  val emptyMap: Map[Set[Guest], Int] = Map()      //> emptyMap  : Map[Set[day13.day13.Guest],Int] = Map()
+  val rules: Map[Set[Guest], Int] = common.loadPackets(List("day13", "day13.txt")).map(parse).foldLeft(emptyMap)(combineRules)
+                                                  //> rules  : Map[Set[day13.day13.Guest],Int] = Map(Set(Eric, Carol) -> 195, Set(
+                                                  //| Mallory, Bob) -> -9, Set(Bob, Alice) -> 42, Set(Mallory, Alice) -> 131, Set(
+                                                  //| Eric, Alice) -> -140, Set(Frank, Eric) -> 118, Set(George, Eric) -> -37, Set
+                                                  //| (Mallory, Carol) -> 43, Set(Eric, Bob) -> 87, Set(Frank, David) -> -88, Set(
+                                                  //| David, Alice) -> -46, Set(Carol, Alice) -> -9, Set(Frank, Bob) -> 132, Set(G
+                                                  //| eorge, David) -> 94, Set(Mallory, David) -> -39, Set(George, Bob) -> 5, Set(
+                                                  //| George, Alice) -> -6, Set(David, Carol) -> -116, Set(Eric, David) -> 33, Set
+                                                  //| (George, Frank) -> 9, Set(David, Bob) -> -33, Set(Mallory, Frank) -> -165, S
+                                                  //| et(Frank, Alice) -> -6, Set(Carol, Bob) -> -160, Set(Frank, Carol) -> 98, Se
+                                                  //| t(Mallory, George) -> 8, Set(George, Carol) -> 1, Set(Mallory, Eric) -> -13)
+                                                  //| 
+
+  val guests: Set[Guest] = rules.keySet.reduceLeft(_ union _)
+                                                  //> guests  : Set[day13.day13.Guest] = Set(Carol, George, Bob, Frank, Eric, Alic
+                                                  //| e, David, Mallory)
 
   def combinations(users: Set[Guest]): Set[List[Guest]] = {
     if (users.isEmpty) Set(Nil) else {
@@ -43,9 +55,10 @@ object day13 {
 
   def happiness(combinations: List[Guest]): Int = {
     val circle = combinations ::: (combinations take 1)
-    val pairs = circle.sliding(2).map { _.toSet }.toList
-    val validRules = rules.filter(rule => { pairs.contains(rule.guests) })
-    validRules.map { _.difference }.sum
+    (for {
+      pair <- circle.sliding(2).map { _.toSet }
+      happiness <- rules.get(pair)
+    } yield happiness).sum
   }                                               //> happiness: (combinations: List[day13.day13.Guest])Int
 
   val sol1 = combinations(guests) map happiness max
