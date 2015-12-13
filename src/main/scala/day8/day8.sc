@@ -1,27 +1,8 @@
 package day8
 
 object day8 {
-  val dictionaryPath = List("day8", "day8.txt")   //> dictionaryPath  : List[String] = List(day8, day8.txt)
-
-  def lines = {
-    val wordstream = Option {
-      getClass.getClassLoader.getResourceAsStream(dictionaryPath.mkString("/"))
-    } orElse {
-      common.resourceAsStreamFromSrc(dictionaryPath)
-    } getOrElse {
-      sys.error("Could not load word list, dictionary file not found")
-    }
-    try {
-      val s = io.Source.fromInputStream(wordstream)
-      s.getLines.toList
-    } catch {
-      case e: Exception =>
-        println("Could not load word list: " + e)
-        throw e
-    } finally {
-      wordstream.close()
-    }
-  }                                               //> lines: => List[String]
+  def lines = common.loadPackets(List("day8", "day8.txt"))
+                                                  //> lines: => List[String]
   
   def memSizeInternal(s: String): Int = {
   	val s2 = s.replaceAll("\\\\\\\\", "B")

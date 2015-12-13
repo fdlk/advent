@@ -1,29 +1,6 @@
 package day6
 
 object day6 {
-  println("Welcome to the Scala worksheet")       //> Welcome to the Scala worksheet
-
-  val dictionaryPath = List("day6", "day6.txt")   //> dictionaryPath  : List[String] = List(day6, day6.txt)
-
-  def loadPackets = {
-    val wordstream = Option {
-      getClass.getClassLoader.getResourceAsStream(dictionaryPath.mkString("/"))
-    } orElse {
-      common.resourceAsStreamFromSrc(dictionaryPath)
-    } getOrElse {
-      sys.error("Could not load word list, dictionary file not found")
-    }
-    try {
-      val s = io.Source.fromInputStream(wordstream)
-      s.getLines.toList
-    } catch {
-      case e: Exception =>
-        println("Could not load word list: " + e)
-        throw e
-    } finally {
-      wordstream.close()
-    }
-  }                                               //> loadPackets: => List[String]
 
   trait Lighting {
     def isLit(x: Int, y: Int): Boolean
@@ -70,8 +47,22 @@ object day6 {
   }                                               //> reduce: (l: day6.day6.Lighting, s: String)day6.day6.Lighting
 
   val start: Lighting = Dark();                   //> start  : day6.day6.Lighting = Dark()
-  val finalState = loadPackets.foldLeft(start)(reduce)
-                                                  //> finalState  : day6.day6.Lighting = Toggle(296,687,906,775,Toggle(580,592,67
+  val inputs = common.loadPackets(List("day6", "day6.txt"));
+                                                  //> inputs  : List[String] = List(turn off 660,55 through 986,197, turn off 341
+                                                  //| ,304 through 638,850, turn off 199,133 through 461,193, toggle 322,558 thro
+                                                  //| ugh 977,958, toggle 537,781 through 687,941, turn on 226,196 through 599,39
+                                                  //| 0, turn on 240,129 through 703,297, turn on 317,329 through 451,798, turn o
+                                                  //| n 957,736 through 977,890, turn on 263,530 through 559,664, turn on 158,270
+                                                  //|  through 243,802, toggle 223,39 through 454,511, toggle 544,218 through 979
+                                                  //| ,872, turn on 313,306 through 363,621, toggle 173,401 through 496,407, togg
+                                                  //| le 333,60 through 748,159, turn off 87,577 through 484,608, turn on 809,648
+                                                  //|  through 826,999, toggle 352,432 through 628,550, turn off 197,408 through 
+                                                  //| 579,569, turn off 1,629 through 802,633, turn off 61,44 through 567,111, to
+                                                  //| ggle 880,25 through 903,973, turn on 347,123 through 864,746, toggle 728,87
+                                                  //| 7 through 996,975, turn on 121,895 through 349,906, turn on 888,547 through
+                                                  //|  931,628, toggle 398,78
+                                                  //| Output exceeds cutoff limit.
+  val finalState =  inputs.foldLeft(start)(reduce)//> finalState  : day6.day6.Lighting = Toggle(296,687,906,775,Toggle(580,592,67
                                                   //| 1,900,Toggle(424,675,740,862,TurnOn(715,871,722,890,TurnOff(446,432,458,648
                                                   //| ,TurnOn(20,984,571,994,TurnOn(777,812,837,912,Toggle(83,575,915,728,TurnOff
                                                   //| (50,197,733,656,Toggle(66,191,757,481,Toggle(475,711,921,882,TurnOn(717,272
