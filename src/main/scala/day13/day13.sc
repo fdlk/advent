@@ -44,15 +44,6 @@ object day13 {
                                                   //> guests  : Set[day13.day13.Guest] = Set(Carol, George, Bob, Frank, Eric, Alic
                                                   //| e, David, Mallory)
 
-  def combinations(users: Set[Guest]): Set[List[Guest]] = {
-    if (users.isEmpty) Set(Nil) else {
-      for {
-        user <- users;
-        combination <- combinations(users - user)
-      } yield user :: combination
-    }
-  }                                               //> combinations: (users: Set[day13.day13.Guest])Set[List[day13.day13.Guest]]
-
   def happiness(combinations: List[Guest]): Int = {
     val circle = combinations ::: (combinations take 1)
     (for {
@@ -61,8 +52,8 @@ object day13 {
     } yield happiness).sum
   }                                               //> happiness: (combinations: List[day13.day13.Guest])Int
 
-  val sol1 = combinations(guests) map happiness max
+  val sol1 = guests.toList.permutations map happiness max
                                                   //> sol1  : Int = 733
-  val sol2 = combinations(guests + "Fleur") map happiness max
+  val sol2 = (guests + "Fleur").toList.permutations map happiness max
                                                   //> sol2  : Int = 725
 }
