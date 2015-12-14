@@ -19,31 +19,20 @@ object day3 {
                                                   //| Output exceeds cutoff limit.
   type Position = (Int, Int)
   type State = (Position, Set[Position])
-  def next(direction: Char, p: Position): Position = p match {
+  def next(p: Position, direction: Char): Position = p match {
     case (x, y) => direction match {
       case '^' => (x, y + 1)
       case 'v' => (x, y - 1)
       case '>' => (x + 1, y)
       case '<' => (x - 1, y)
     }
-  }                                               //> next: (direction: Char, p: day3.day3.Position)day3.day3.Position
-
-  def reduce(state: State, direction: Char): State = {
-    state match {
-      case (pos, visited) => {
-        val nextPos = next(direction, pos)
-        (nextPos, visited + pos + nextPos)
-      }
-    }
-  }                                               //> reduce: (state: day3.day3.State, direction: Char)day3.day3.State
-
+  }                                               //> next: (p: day3.day3.Position, direction: Char)day3.day3.Position
   
-  def houses(input: Seq[Char]) = {
-    val start: State = ((0, 0), Set())
-    input.foldLeft(start)(reduce)._2
+  def houses(input: Seq[Char]): Set[Position] = {
+   input.toList.scanLeft((0,0))(next).toSet
   }                                               //> houses: (input: Seq[Char])Set[day3.day3.Position]
 
-	houses(input) size                        //> res0: Int = 2081
+  houses(input) size                              //> res0: Int = 2081
   val (santa, robo) = input.zipWithIndex.partition({ case (c, i) => i % 2 == 0 })
                                                   //> santa  : scala.collection.immutable.IndexedSeq[(Char, Int)] = Vector((^,0),
                                                   //|  (<,2), (>,4), (>,6), (<,8), (v,10), (v,12), (^,14), (v,16), (>,18), (<,20)
