@@ -47,8 +47,8 @@ object day13 {
   def happiness(combinations: List[Guest]): Int = {
     val circle = combinations ::: (combinations take 1)
     (for {
-      pair <- circle.sliding(2).map { _.toSet }
-      happiness <- rules.get(pair)
+      pair <- circle.sliding(2)
+      happiness <- rules.get(pair.toSet)
     } yield happiness).sum
   }                                               //> happiness: (combinations: List[day13.day13.Guest])Int
 
