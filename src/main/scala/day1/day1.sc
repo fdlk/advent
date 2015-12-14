@@ -17,20 +17,6 @@ object day1 {
                                                   //| )))(()))(()((()))()(()((((((()()()()((((((((()(()(())((()()(()()))(())()())
                                                   //| ()((())))()))()())(((()
                                                   //| Output exceeds cutoff limit.
-  abstract class Santa
-  case class Found(position: Int) extends Santa
-  case class Looking(floor: Int) extends Santa
-
-  def reducer(state: Santa, c: (Char, Int)): Santa =
-    state match {
-      case Looking(floor) => c match {
-        case (')', pos) if (floor == 0) => Found(pos + 1)
-        case (')', _)                   => Looking(floor - 1)
-        case ('(', pos)                 => Looking(floor + 1)
-      }
-      case f: Found => f
-    }                                             //> reducer: (state: day1.day1.Santa, c: (Char, Int))day1.day1.Santa
-  val start: Santa = Looking(0)                   //> start  : day1.day1.Santa = Looking(0)
-  val result: Santa = input.zipWithIndex.foldLeft(start)(reducer)
-                                                  //> result  : day1.day1.Santa = Found(1771)
+  input.map(_ match {case '(' => 1; case ')' => -1}).scanLeft(0)(_+_).indexOf(-1)
+                                                  //> res0: Int = 1771
 }
