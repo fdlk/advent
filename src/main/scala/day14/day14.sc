@@ -19,7 +19,7 @@ object day14 {
   reindeer.map(r => r.distance(2503)).max         //> res0: Int = 2696
   reindeer.map(r => r.distances(2503))
     .transpose
-    .map({ l => l.indexOf(l.max) })
+    .flatMap({ l => l.indices.filter {i => l(i) == l.max} })
     .groupBy(x => x)
     .map(t => t._2.length)
     .max                                          //> res1: Int = 1084
