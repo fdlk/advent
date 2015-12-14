@@ -40,10 +40,10 @@ object day3 {
   
   def houses(input: Seq[Char]) = {
     val start: State = ((0, 0), Set())
-    input.foldLeft(start)(reduce)
-  }                                               //> houses: (input: Seq[Char])day3.day3.State
+    input.foldLeft(start)(reduce)._2
+  }                                               //> houses: (input: Seq[Char])Set[day3.day3.Position]
 
-	houses(input)._2 size                     //> res0: Int = 2081
+	houses(input) size                        //> res0: Int = 2081
   val (santa, robo) = input.zipWithIndex.partition({ case (c, i) => i % 2 == 0 })
                                                   //> santa  : scala.collection.immutable.IndexedSeq[(Char, Int)] = Vector((^,0),
                                                   //|  (<,2), (>,4), (>,6), (<,8), (v,10), (v,12), (^,14), (v,16), (>,18), (<,20)
@@ -59,6 +59,6 @@ object day3 {
                                                   //| >,180), (^,182), (<,184), (v,186), (<,188), (<,190), (v,192), (v,194), (v,1
                                                   //| 96), (>,198), (>,200), 
                                                   //| Output exceeds cutoff limit.
-  (houses(santa map {_._1})._2 ++ houses(robo map {_._1})._2) size
+  (houses(santa.unzip._1) ++ houses(robo.unzip._1)) size
                                                   //> res1: Int = 2341
 }
