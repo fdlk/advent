@@ -31,10 +31,6 @@ object day15 {
       (amount, ingredient) <- recipe
     } yield ingredient.texture * amount).toList.sum
 
-    val calories = (for {
-      (amount, ingredient) <- recipe
-    } yield ingredient.calories * amount).toList.sum
-
     Math.max(capacity, 0) * Math.max(durability, 0) * Math.max(flavor, 0) * Math.max(texture, 0)
   }                                               //> score: (recipe: List[(Int, day15.day15.Ingredient)])Int
 
