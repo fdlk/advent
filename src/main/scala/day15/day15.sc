@@ -30,12 +30,12 @@ object day15 {
 
     Math.max(capacity, 0) * Math.max(durability, 0) * Math.max(flavor, 0) * Math.max(texture, 0)
   }                                               //> score: (recipe: List[(Int, day15.day15.Ingredient)])Int
-  
- 	def totalCalories(recipe: List[(Int, Ingredient)]): Int = {
- 		(for {
+
+  def totalCalories(recipe: List[(Int, Ingredient)]): Int = {
+    (for {
       (amount, ingredient) <- recipe
     } yield ingredient.calories * amount).toList.sum
- 	}                                         //> totalCalories: (recipe: List[(Int, day15.day15.Ingredient)])Int
+  }                                               //> totalCalories: (recipe: List[(Int, day15.day15.Ingredient)])Int
 
   val ingredients = common.loadPackets(List("day15", "day15.txt")).map {
     case pattern(name, capacity, durability, flavor, texture, calories) =>
@@ -51,12 +51,24 @@ object day15 {
         amount <- 0 to leftover
         combination <- combinations(is, leftover - amount)
         val combination2: List[(Int, Ingredient)] = (amount, i) :: combination
-      } yield combination2 ).toList
+      } yield combination2).toList
     }
   }                                               //> combinations: (ingredients: List[day15.day15.Ingredient], leftover: Int)Lis
                                                   //| t[List[(Int, day15.day15.Ingredient)]]
-  
-  combinations(ingredients, 100).filter(r => totalCalories(r) == 500). map(score).max
-                                                  //> res0: Int = 15862900
 
+  combinations(ingredients, 100).map(score).max   //> res0: Int = 18965440
+
+  def combinationsWithCalories(ingredients: List[Ingredient], leftover: Int, caloriesLeft: Int): List[List[(Int, Ingredient)]] = {
+    ingredients match {
+      case Nil => if (caloriesLeft == 0) List(Nil) else Nil
+      case i :: is => (for {
+        amount <- 0 to leftover
+        combination <- combinationsWithCalories(is, leftover - amount, caloriesLeft - amount * i.calories)
+        val combination2: List[(Int, Ingredient)] = (amount, i) :: combination
+      } yield combination2).toList
+    }
+  }                                               //> combinationsWithCalories: (ingredients: List[day15.day15.Ingredient], lefto
+                                                  //| ver: Int, caloriesLeft: Int)List[List[(Int, day15.day15.Ingredient)]]
+  combinationsWithCalories(ingredients, 100, 500).map(score).max
+                                                  //> res1: Int = 15862900
 }
