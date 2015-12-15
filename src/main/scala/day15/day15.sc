@@ -36,7 +36,7 @@ object day15 {
 
   def combinations(ingredients: List[Ingredient], leftover: Int): List[List[(Int, Ingredient)]] = {
     ingredients match {
-      case Nil => List(Nil)
+      case Nil => if( leftover == 0 ) List(Nil) else Nil
       case i :: is => (for {
         amount <- 0 to leftover
         combination <- combinations(is, leftover - amount)
