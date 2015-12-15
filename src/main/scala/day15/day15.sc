@@ -49,7 +49,7 @@ object day15 {
 
   def combinationsWithCalories(ingredients: List[Ingredient], leftover: Int, caloriesLeft: Int): List[List[(Int, Ingredient)]] = {
     ingredients match {
-      case Nil => if (caloriesLeft == 0) List(Nil) else Nil
+      case Nil => if (caloriesLeft == 0 && leftover == 0 ) List(Nil) else Nil
       case i :: is => (for {
         amount <- 0 to leftover if caloriesLeft - amount * i.calories >= 0
         combination <- combinationsWithCalories(is, leftover - amount, caloriesLeft - amount * i.calories)
