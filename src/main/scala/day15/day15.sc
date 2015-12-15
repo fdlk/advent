@@ -31,12 +31,6 @@ object day15 {
     Math.max(capacity, 0) * Math.max(durability, 0) * Math.max(flavor, 0) * Math.max(texture, 0)
   }                                               //> score: (recipe: List[(Int, day15.day15.Ingredient)])Int
 
-  def totalCalories(recipe: List[(Int, Ingredient)]): Int = {
-    (for {
-      (amount, ingredient) <- recipe
-    } yield ingredient.calories * amount).toList.sum
-  }                                               //> totalCalories: (recipe: List[(Int, day15.day15.Ingredient)])Int
-
   val ingredients = common.loadPackets(List("day15", "day15.txt")).map {
     case pattern(name, capacity, durability, flavor, texture, calories) =>
       Ingredient(name, capacity.toInt, durability.toInt, flavor.toInt, texture.toInt, calories.toInt)
