@@ -8,10 +8,12 @@ object day4 {
                                                   //| lized>
                                                   //| 
   digest.update("iwrupvqb".getBytes)
-  digest                                          //> res0: java.security.MessageDigest = MD5 Message Digest from SUN, <in progres
-                                                  //| s>
-                                                  //| 
-  def hash(text: String): Boolean = digest.clone.asInstanceOf[MessageDigest].digest(text.getBytes).take(3).sameElements(Array(0,0,0))
-                                                  //> hash: (text: String)Boolean
-  Stream.from(1).find { x => hash(x.toString) }   //> res1: Option[Int] = Some(9958218)
+  def clone: MessageDigest = digest.clone.asInstanceOf[MessageDigest]
+                                                  //> clone: ()java.security.MessageDigest
+  def hash1(text: String): Boolean = clone.digest(text.getBytes).map("%02x".format(_)).mkString.startsWith("00000")
+                                                  //> hash1: (text: String)Boolean
+  Stream.from(1) map (_.toString) find hash1      //> res0: Option[String] = Some(346386)
+  def hash2(text: String): Boolean = clone.digest(text.getBytes).take(3).sameElements(Array(0, 0, 0))
+                                                  //> hash2: (text: String)Boolean
+  Stream.from(1) map (_.toString) find hash2      //> res1: Option[String] = Some(9958218)
 }
