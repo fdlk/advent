@@ -17,19 +17,19 @@ object day15 {
   def score(recipe: List[(Int, Ingredient)]): Int = {
     val capacity = (for {
       (amount, ingredient) <- recipe
-    } yield ingredient.capacity * amount).toList.sum
+    } yield ingredient.capacity * amount).sum
 
     val durability = (for {
       (amount, ingredient) <- recipe
-    } yield ingredient.durability * amount).toList.sum
+    } yield ingredient.durability * amount).sum
 
     val flavor = (for {
       (amount, ingredient) <- recipe
-    } yield ingredient.flavor * amount).toList.sum
+    } yield ingredient.flavor * amount).sum
 
     val texture = (for {
       (amount, ingredient) <- recipe
-    } yield ingredient.texture * amount).toList.sum
+    } yield ingredient.texture * amount).sum
 
     Math.max(capacity, 0) * Math.max(durability, 0) * Math.max(flavor, 0) * Math.max(texture, 0)
   }                                               //> score: (recipe: List[(Int, day15.day15.Ingredient)])Int

@@ -9,7 +9,7 @@ object day4 {
                                                   //| 
   digest.update("iwrupvqb".getBytes)
   def initializedDigest: MessageDigest = digest.clone.asInstanceOf[MessageDigest]
-                                                  //> clone: ()java.security.MessageDigest
+                                                  //> initializedDigest: => java.security.MessageDigest
   def hash1(text: String): Boolean = initializedDigest.digest(text.getBytes).map("%02x".format(_)).mkString.startsWith("00000")
                                                   //> hash1: (text: String)Boolean
   Stream.from(1) map (_.toString) find hash1      //> res0: Option[String] = Some(346386)
