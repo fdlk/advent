@@ -1,5 +1,3 @@
-package day5
-
 object day5 {
   val input = common.loadPackets( List("day5", "day5.txt"))
                                                   //> input  : List[String] = List(zgsnvdmlfuplrubt, vlhagaovgqjmgvwq, ffumlmqwfcsy

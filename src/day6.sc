@@ -1,5 +1,3 @@
-package day6
-
 object day6 {
 
   trait Lighting {

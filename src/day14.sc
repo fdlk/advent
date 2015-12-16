@@ -1,5 +1,3 @@
-package day14
-
 object day14 {
   val specString = """(\w+) can fly (\d+) km/s for (\d+) seconds, but then must rest for (\d+) seconds.""".r
                                                   //> specString  : scala.util.matching.Regex = (\w+) can fly (\d+) km/s for (\d+)

@@ -1,5 +1,3 @@
-package day7
-
 import common._
 
 object day7 {

@@ -1,5 +1,3 @@
-package day10
-
 object day10 {
   def elvesSayInternal(s: List[Char], c: Char, i: Int, prefix: String): String = s match {
     case Nil                 => prefix + "" + i + c

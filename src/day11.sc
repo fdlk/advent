@@ -1,5 +1,3 @@
-package day11
-
 object day11 {
   def next(c: Char) = (c + 1).toChar              //> next: (c: Char)Char
 

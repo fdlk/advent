@@ -1,8 +1,3 @@
-package day13
-
-import common._
-import scala.collection.mutable.MultiMap
-
 object day13 {
 
   type Guest = String
@@ -15,13 +10,13 @@ object day13 {
                                                   //| s by sitting next to (\w+).
 
   def parse(line: String) = line match {
-    case gain(guest, difference, nextTo) => (Set(guest, nextTo) -> difference.toInt)
-    case lose(guest, difference, nextTo) => (Set(guest, nextTo) -> -difference.toInt)
+    case gain(guest, difference, nextTo) => Set(guest, nextTo) -> difference.toInt
+    case lose(guest, difference, nextTo) => Set(guest, nextTo) -> -difference.toInt
   }                                               //> parse: (line: String)(scala.collection.immutable.Set[String], Int)
 
   def combineRules(rules:Map[Set[Guest],Int], rule:(Set[Guest], Int)) = {
     rule match {
-      case (guests, diff) => rules.updated(guests, rules.getOrElse(guests, 0) + diff)
+      case (g, diff) => rules.updated(g, rules.getOrElse(g, 0) + diff)
     }
   }                                               //> combineRules: (rules: Map[Set[day13.day13.Guest],Int], rule: (Set[day13.day1
                                                   //| 3.Guest], Int))scala.collection.immutable.Map[Set[day13.day13.Guest],Int]

@@ -1,5 +1,3 @@
-package day4
-
 object day4 {
   import java.security.MessageDigest
 

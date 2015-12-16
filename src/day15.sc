@@ -1,5 +1,3 @@
-package day15
-
 object day15 {
   val pattern = """(\w+): capacity (-?\d+), durability (-?\d+), flavor (-?\d+), texture (-?\d+), calories (-?\d+)""".r
                                                   //> pattern  : scala.util.matching.Regex = (\w+): capacity (-?\d+), durability (

@@ -1,5 +1,3 @@
-package day2
-
 object day2 {
   val packets = common.loadPackets(List("day2", "day2.txt")).map { _.split('x').toList map { _.toInt } }
                                                   //> packets  : List[List[Int]] = List(List(4, 23, 21), List(22, 29, 19), List(11
@@ -21,7 +19,7 @@ object day2 {
     val (start, _ :: end) = list.splitAt(index)
     start ::: end
   }                                               //> remove: [T](list: List[T], index: Int)List[T]
-
+  
   packets map { dim =>
     val sides = for {
       index <- dim.indices

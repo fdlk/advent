@@ -1,5 +1,3 @@
-package day12
-
 import scala.util.parsing.json.JSON
 
 object day12 {

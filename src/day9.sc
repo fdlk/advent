@@ -1,5 +1,3 @@
-package day9
-
 object day9 {
   def lines = common.loadPackets(List("day9", "day9.txt"))
                                                   //> lines: => List[String]
