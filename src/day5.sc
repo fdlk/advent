@@ -27,7 +27,7 @@ object day5 {
   input.count(isNice)                     //> res0: Int = 238
 
   def nonOverlappingPairs(x:(String, List[(String, Int)])) = {
-    val indices = x._2.map { _._2 };
+    val indices = x._2.map { _._2 }
     indices.max - indices.min > 1
   }                                               //> nonOverlappingPairs: (x: (String, List[(String, Int)]))Boolean
 
