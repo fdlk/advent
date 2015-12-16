@@ -53,7 +53,7 @@ object day15 {
       case i :: is => (for {
         amount <- 0 to leftover if caloriesLeft - amount * i.calories >= 0
         combination <- combinationsWithCalories(is, leftover - amount, caloriesLeft - amount * i.calories)
-        val combination2: List[(Int, Ingredient)] = (amount, i) :: combination
+        combination2: List[(Int, Ingredient)] = (amount, i) :: combination
       } yield combination2).toList
     }
   }                                               //> combinationsWithCalories: (ingredients: List[day15.day15.Ingredient], lefto

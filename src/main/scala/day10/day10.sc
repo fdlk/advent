@@ -22,7 +22,7 @@ object day10 {
 		elvesSay(s)
 	}                                         //> reduce: (s: String, i: Int)String
 
-  ((1 to 50).foldLeft (start)(reduce)).size       //> 1
+  (1 to 50).foldLeft (start)(reduce).length       //> 1
                                                   //| 2
                                                   //| 3
                                                   //| 4

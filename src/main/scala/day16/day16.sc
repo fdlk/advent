@@ -8,7 +8,7 @@ object day16 {
 
   class AuntParser extends JavaTokenParsers {
     def thing: Parser[String] = "children" | "cats" | "samoyeds" | "akitas" | "vizslas" | "goldfish" | "trees" | "cars" | "perfumes" | "pomeranians" ^^ { x => x }
-    def aunt: Parser[Aunt] = "Sue " ~> (wholeNumber) ~ ": " ~ repsep(property, ",") ^^ { case sue ~ ": " ~ props => Aunt(sue, props.toMap) }
+    def aunt: Parser[Aunt] = "Sue " ~> wholeNumber ~ ": " ~ repsep(property, ",") ^^ { case sue ~ ": " ~ props => Aunt(sue, props.toMap) }
     def property: Parser[(String, Int)] = thing ~ ": " ~ wholeNumber ^^ { case name ~ ": " ~ value => (name, value.toInt) }
   }
 

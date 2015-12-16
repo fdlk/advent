@@ -27,10 +27,10 @@ object day12 {
   def sum(tree: Any): Int = tree match {
     case map: Map[String, Any] if map.values.exists { _ == "red" } => 0
     case map: Map[String, Any] => {
-      map.map({ case (k: String, v: Any) => sum(k) + sum(v) }).reduceLeft(_ + _)
+      map.map({ case (k: String, v: Any) => sum(k) + sum(v) }).sum
     }
     case list: List[Any] => {
-      list.map({ sum(_) }).reduceLeft(_ + _)
+      list.map(sum).sum
     }
     case s: String => 0
     case d: Double => d.toInt

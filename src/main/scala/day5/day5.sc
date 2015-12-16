@@ -17,7 +17,7 @@ object day5 {
                                                   //| wah, ubpwixgxdloqnvjp, lx
                                                   //| Output exceeds cutoff limit.
 
-  def hasThreeVowels(s: String): Boolean = s.filter("aeiou".contains(_)).size > 2
+  def hasThreeVowels(s: String): Boolean = s.count("aeiou".contains(_)) > 2
                                                   //> hasThreeVowels: (s: String)Boolean
   def hasRepeatingLetter(s: String): Boolean = s.toList.sliding(2).exists { _.toList match { case List(a, b) => a == b } }
                                                   //> hasRepeatingLetter: (s: String)Boolean
@@ -26,7 +26,7 @@ object day5 {
   def isNice(s: String): Boolean = hasThreeVowels(s) && hasRepeatingLetter(s) && hasNoForbiddenSubstring(s)
                                                   //> isNice: (s: String)Boolean
 
-  input.filter(isNice).size                       //> res0: Int = 238
+  input.count(isNice)                     //> res0: Int = 238
 
   def nonOverlappingPairs(x:(String, List[(String, Int)])) = {
     val indices = x._2.map { _._2 };
@@ -34,7 +34,7 @@ object day5 {
   }                                               //> nonOverlappingPairs: (x: (String, List[(String, Int)]))Boolean
 
   def hasRepeatingPair(s: String) = {
-    s.sliding(2).zipWithIndex.toList.groupBy { _._1 }.filter(nonOverlappingPairs).nonEmpty
+    s.sliding(2).zipWithIndex.toList.groupBy { _._1 }.exists(nonOverlappingPairs)
   }                                               //> hasRepeatingPair: (s: String)Boolean
 
 	def hasRepeatingLetterWithOneInBetween(s: String) = {
@@ -45,6 +45,6 @@ object day5 {
                                                   //> isNice2: (s: String)Boolean
  
 	isNice2("ieodomkazucvgmuy")               //> res1: Boolean = false
-  input.filter(isNice2).size                      //> res2: Int = 69
+  input.count(isNice2)                      //> res2: Int = 69
 
 }

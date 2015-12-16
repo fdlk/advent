@@ -13,11 +13,11 @@ object day8 {
   }                                               //> memSizeInternal: (s: String)Int
   
   def memSizeExpanded(s: String): Int = {
-  	s.length + (s.filter(c => """\"""".contains(c)).size) + 2
+  	s.length + s.count(c => """\"""".contains(c)) + 2
   }                                               //> memSizeExpanded: (s: String)Int
     
   def memSize(s: String): Int = memSizeInternal(s.substring(1, s.length-1))
                                                   //> memSize: (s: String)Int
-  lines map {x=>(memSizeExpanded(x) - x.length)} sum
+  lines map {x=>memSizeExpanded(x) - x.length} sum
                                                   //> res0: Int = 2074
 }
