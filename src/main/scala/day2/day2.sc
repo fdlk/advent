@@ -24,8 +24,8 @@ object day2 {
 
   packets map { dim =>
     val sides = for {
-      index <- 0 until dim.length;
-      val l :: b :: Nil = remove(dim, index)
+      index <- dim.indices
+      l :: b :: Nil = remove(dim, index)
     } yield l * b
     2 * sides.sum + sides.min
   } sum                                           //> res0: Int = 1598415
