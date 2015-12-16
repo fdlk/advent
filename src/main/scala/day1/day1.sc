@@ -16,8 +16,8 @@ object day1 {
                                                   //| )))(()))(()((()))()(()((((((()()()()((((((((()(()(())((()()(()()))(())()())
                                                   //| ()((())))()))()())(((()
                                                   //| Output exceeds cutoff limit.
-  input.map(_ match { case '(' => 1; case ')' => -1 }).reduceLeft(_ + _)
+  input.map({ case '(' => 1; case ')' => -1 }).sum
                                                   //> res0: Int = 138
-  input.map(_ match { case '(' => 1; case ')' => -1 }).scanLeft(0)(_ + _).indexOf(-1)
+  input.map({ case '(' => 1; case ')' => -1 }).scanLeft(0)(_ + _).indexOf(-1)
                                                   //> res1: Int = 1771
 }
