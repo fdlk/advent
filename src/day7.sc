@@ -1,6 +1,6 @@
 import scala.util.parsing.combinator.JavaTokenParsers
 
-object day17 {
+object day7 {
   type Signal = Int
   type State = Map[String, Signal]
 
