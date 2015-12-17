@@ -1,6 +1,6 @@
 object day10 {
   def elvesSayInternal(s: List[Char], c: Char, i: Int, prefix: String): String = s match {
-    case Nil                 => prefix + "" + i + c
+    case Nil                 => prefix + s"$i$c"
     case c2 :: s1 if c == c2 => elvesSayInternal(s1, c, i + 1, prefix)
     case c2 :: s1            => elvesSayInternal(s1, c2, 1, prefix + "" + i + c)
   }                                               //> elvesSayInternal: (s: List[Char], c: Char, i: Int, prefix: String)String
@@ -19,7 +19,6 @@ object day10 {
 		println(i)
 		elvesSay(s)
 	}                                         //> reduce: (s: String, i: Int)String
-
   (1 to 50).foldLeft (start)(reduce).length       //> 1
                                                   //| 2
                                                   //| 3

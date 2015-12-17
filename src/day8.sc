@@ -1,12 +1,10 @@
 object day8 {
   def lines = common.loadPackets(List("day8", "day8.txt"))
-                                                  //> lines: => List[String]
-  
+
   def memSizeInternal(s: String): Int = {
   	val s2 = s.replaceAll("\\\\\\\\", "B")
   	val s3 = "\\\\\"".r.replaceAllIn(s2,"Q")
   	val s4 = "\\\\x[0-9a-f]{1,2}".r.replaceAllIn(s3, "X")
-		//print((s,s2,s3,s4,s4.length))
   	s4.length
   }                                               //> memSizeInternal: (s: String)Int
   
