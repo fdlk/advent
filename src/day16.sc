@@ -6,8 +6,8 @@ object day16 {
 
   class AuntParser extends JavaTokenParsers {
     def thing: Parser[String] = "children" | "cats" | "samoyeds" | "akitas" | "vizslas" | "goldfish" | "trees" | "cars" | "perfumes" | "pomeranians" ^^ { x => x }
-    def aunt: Parser[Aunt] = "Sue " ~> wholeNumber ~ ": " ~ repsep(property, ",") ^^ { case sue ~ ": " ~ props => Aunt(sue, props.toMap) }
-    def property: Parser[(String, Int)] = thing ~ ": " ~ wholeNumber ^^ { case name ~ ": " ~ value => (name, value.toInt) }
+    def aunt: Parser[Aunt] = "Sue " ~> (wholeNumber <~ ":") ~ repsep(property, ",") ^^ { case sue ~ props => Aunt(sue, props.toMap) }
+    def property: Parser[(String, Int)] = (thing <~ ":") ~ wholeNumber ^^ { case name ~ value => (name, value.toInt) }
   }
   object AuntParser extends AuntParser
 
@@ -19,7 +19,7 @@ object day16 {
   aunts filter { _.props.forall { case (prop, value) => theRealSue.props(prop) == value } }
 
   val matches2: Map[String, (Int => Boolean)] =
-    Map("children" -> {x:Int => 3==x},
+    Map("children" -> { 3 == _ },
       "cats" -> {7 < _},
       "samoyeds" -> { 2 == _ },
       "pomeranians" -> {2 > _},
