@@ -18,17 +18,19 @@ object day16 {
 
   aunts filter { _.props.forall { case (prop, value) => theRealSue.props(prop) == value } }
 
-  val matches2: Map[String, (Int => Boolean)] =
-    Map("children" -> { 3 == _ },
-      "cats" -> {7 < _},
-      "samoyeds" -> { 2 == _ },
-      "pomeranians" -> {2 > _},
-      "akitas" -> {0 == _},
-      "vizslas" -> {0 == _},
-      "goldfish" -> {5 > _},
-      "trees" -> {3 < _},
-      "cars" -> {2 == _},
-      "perfumes" -> {1 == _}).withDefaultValue({_ => true})
+  def matches2(prop: (String, Int)): Boolean = prop match {
+    case ("children", x) => x == 3
+    case ("cats", x) => x > 7
+    case ("samoyeds", x) => x == 2
+    case ("pomeranians", x) => x < 2
+    case ("akitas", x) => x == 0
+    case ("vizslas", x) => x == 0
+    case ("goldfish", x) => x < 5
+    case ("trees", x) => x > 3
+    case ("cars", x) => x == 2
+    case ("perfumes", x) => x == 1
+    case _ => true
+  }
 
-  aunts filter { _.props.forall { case (prop, value) => matches2(prop)(value) } }
+  aunts filter { _.props forall  matches2 }
 }
