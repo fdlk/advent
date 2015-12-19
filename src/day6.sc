@@ -1,61 +1,68 @@
+import scala.util.parsing.combinator.JavaTokenParsers
+
 object day6 {
 
   trait Lighting {
-    def isLit(x: Int, y: Int): Boolean
-    def brightness(x: Int, y: Int): Int
+    def isLit(previous: Boolean): Boolean
+    def brightness(previous: Int): Int
   }
 
-  case class Dark() extends Lighting {
-    override def isLit(x: Int, y: Int) = false
-    override def brightness(x: Int, y: Int) = 0
+  case class Square(xRange: Range, yRange: Range) {
+    def contains(x: Int, y: Int): Boolean =
+      xRange.contains(x) && yRange.contains(y)
   }
 
-  trait Square {
-    val x0: Int
-    val y0: Int
-    val x1: Int
-    val y1: Int
-    def contains(x: Int, y: Int): Boolean = x0 <= x && x <= x1 && y0 <= y && y <= y1
+  object Dark extends Lighting {
+    override def isLit(previous: Boolean) = false
+    override def brightness(previous: Int) = 0
   }
 
-  case class TurnOff(x0: Int, y0: Int, x1: Int, y1: Int, s: Lighting) extends Square with Lighting {
-    override def isLit(x: Int, y: Int) = if (contains(x, y)) false else s.isLit(x, y)
-    override def brightness(x: Int, y: Int) = if (contains(x, y)) Math.max(s.brightness(x, y) - 1, 0) else s.brightness(x, y)
+  object TurnOff extends Lighting {
+    override def isLit(previous: Boolean) = false
+    override def brightness(previous: Int) = Math.max(previous - 1, 0)
   }
 
-  case class TurnOn(x0: Int, y0: Int, x1: Int, y1: Int, s: Lighting) extends Square with Lighting {
-    override def isLit(x: Int, y: Int) = if (contains(x, y)) true else s.isLit(x, y)
-    override def brightness(x: Int, y: Int) = if (contains(x, y)) s.brightness(x, y) + 1 else s.brightness(x, y)
+  object TurnOn extends Lighting {
+    override def isLit(previous: Boolean) = true
+    override def brightness(previous: Int) = previous + 1
   }
 
-  case class Toggle(x0: Int, y0: Int, x1: Int, y1: Int, s: Lighting) extends Square with Lighting {
-    override def isLit(x: Int, y: Int) = if (contains(x, y)) !s.isLit(x, y) else s.isLit(x, y)
-    override def brightness(x: Int, y: Int) = if (contains(x, y)) s.brightness(x, y) + 2 else s.brightness(x, y)
+  object Toggle extends Lighting {
+    override def isLit(previous: Boolean) = !previous
+    override def brightness(previous: Int) = previous + 2
   }
 
-  def reduce(l: Lighting, s: String): Lighting = {
-    val turnOff = """turn off (\d{0,3}),(\d{0,3}) through (\d{0,3}),(\d{0,3})""".r
-    val turnOn = """turn on (\d{0,3}),(\d{0,3}) through (\d{0,3}),(\d{0,3})""".r
-    val toggle = """toggle (\d{0,3}),(\d{0,3}) through (\d{0,3}),(\d{0,3})""".r
-    s match {
-      case turnOff(x0, y0, x1, y1) => TurnOff(x0.toInt, y0.toInt, x1.toInt, y1.toInt, l)
-      case turnOn(x0, y0, x1, y1)  => TurnOn(x0.toInt, y0.toInt, x1.toInt, y1.toInt, l)
-      case toggle(x0, y0, x1, y1)  => Toggle(x0.toInt, y0.toInt, x1.toInt, y1.toInt, l)
-    }
+  case class Instruction(lighting: Lighting, square: Square)
+
+  class InstructionParser extends JavaTokenParsers {
+    def point: Parser[(Int, Int)] = {wholeNumber ~ "," ~ wholeNumber ^^ { case x ~ "," ~ y => (x.toInt, y.toInt) }}
+    def square: Parser[Square] = point ~ "through" ~ point ^^ { case p1 ~ "through" ~ p2 => Square(p1._1 to p2._1, p1._2 to p2._2) }
+    def lighting: Parser[Lighting] = "turn off" ^^ {case _ => TurnOff} | "turn on" ^^ {case _ => TurnOn} | "toggle" ^^ {case _ => Toggle}
+    def instruction: Parser[Instruction] = lighting~square ^^ {case lighting~square => Instruction(lighting, square)}
   }
-  val start: Lighting = Dark()
-  val inputs = common.loadPackets(List("day6", "day6.txt"))
-  val finalState =  inputs.foldLeft(start)(reduce)
-  val lights1 = for {
+  object InstructionParser extends InstructionParser
+  val start: Lighting = Dark
+  val instructions = common.loadPackets(List("day6", "day6.txt"))
+    .map(InstructionParser.parseAll(InstructionParser.instruction, _).get)
+
+  def relevantInstructions(x: Int, y: Int) = for {
+    instruction <- instructions
+    if instruction.square.contains(x, y)
+  } yield instruction
+
+  lazy val relevantInstructionsPerSquare = for {
     x <- 0 until 1000
     y <- 0 until 1000
-    if finalState.isLit(x, y)
-  } yield 1
-  lights1.length
+  } yield relevantInstructions(x, y)
 
-  val lights2 = for {
-    x <- 0 until 1000
-    y <- 0 until 1000
-  } yield finalState.brightness(x, y)
-  lights2.sum
+  def isLit(lit: Boolean, instruction: Instruction) = instruction.lighting.isLit(lit)
+  def howBright(brightness: Int, instruction: Instruction) = instruction.lighting.brightness(brightness)
+
+  relevantInstructionsPerSquare.map {
+    _.foldLeft(false)(isLit)
+  }.count(identity)
+
+  relevantInstructionsPerSquare.map {
+    _.foldLeft(0)(howBright)
+  }.sum
 }
