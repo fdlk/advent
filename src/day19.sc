@@ -8,7 +8,6 @@ object day19 {
   }
   val tokens = input.map(parseLine)
 
-  //.sortBy({ case (k: String, v: String) => -v.length })
   def replacements(source: String, prefix: String): Set[String] = {
     source match {
       case "" => Set()
