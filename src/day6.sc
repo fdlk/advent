@@ -48,22 +48,19 @@ object day6 {
   object InstructionParser extends InstructionParser
   val start: Lighting = Dark
   val instructions = common.loadPackets(List("day6", "day6.txt")).map(InstructionParser.parseAll(InstructionParser.instruction, _).get)
-  def relevantInstructions(x: Int, y: Int) = for {
-    instruction <- instructions
-    if instruction.square.contains(x, y)
-  } yield instruction
+
   def relevantInstructionSquare = for {
     x <- 0 until 1000
     y <- 0 until 1000
-  } yield relevantInstructions(x, y)
+  } yield instructions.filter{_.square.contains(x, y)}
 
   def isLit(lit: Boolean, instruction: Instruction) = instruction.lighting.isLit(lit)
+  def howBright(brightness: Int, instruction: Instruction) = instruction.lighting.brightness(brightness)
 
   relevantInstructionSquare.map {
     _.foldLeft(false)(isLit)
   }.count(identity)
-  def howBright(brightness: Int, instruction: Instruction) = instruction.lighting.brightness(brightness)
-
+  
   relevantInstructionSquare.map {
     _.foldLeft(0)(howBright)
   }.sum
