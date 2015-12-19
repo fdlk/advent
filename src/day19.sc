@@ -2,6 +2,7 @@ import scala.util.Random
 object day19 {
   val mol: String = "CRnCaSiRnBSiRnFArTiBPTiTiBFArPBCaSiThSiRnTiBPBPMgArCaSiRnTiMgArCaSiThCaSiRnFArRnSiRnFArTiTiBFArCaCaSiRnSiThCaCaSiRnMgArFYSiRnFYCaFArSiThCaSiThPBPTiMgArCaPRnSiAlArPBCaCaSiRnFYSiThCaRnFArArCaCaSiRnPBSiRnFArMgYCaCaCaCaSiThCaCaSiAlArCaCaSiRnPBSiAlArBCaCaCaCaSiThCaPBSiThPBPBCaSiRnFYFArSiThCaSiRnFArBCaCaSiRnFYFArSiThCaPBSiThCaSiRnPMgArRnFArPTiBCaPRnFArCaCaCaCaSiRnCaCaSiRnFYFArFArBCaSiThFArThSiThSiRnTiRnPMgArFArCaSiThCaPBCaSiRnBFArCaCaPRnCaCaPMgArSiRnFYFArCaSiThRnPBPMgAr"
   val input = common.loadPackets(List("day19.txt"))
+
   def parseLine(line: String): (String, String) = {
     val x = line.split(" => ")
     (x(0), x(1))
@@ -22,23 +23,11 @@ object day19 {
       }
     }
   }
+
   replacements(mol, "").size
-  def parse(molString: String, replacements: Int): Option[Int] = {
-    if (molString == "e") {
-      println(replacements)
-      Some(replacements)
-    } else {
-      val tokenFits: List[(String, String)] =
-        tokens.filter({ case (_, v: String) => molString.contains(v) })
-      val options: List[Int] = for {
-        (k, v) <- Random.shuffle(tokenFits)
-        repls <- parse(molString.replaceFirst(v, k), replacements + 1)
-      } yield repls
-      if (options.isEmpty) {
-        None
-      } else Some(options.min)
-    }
+
+  def count(string: String, substring: String): Int = {
+    substring.r.findAllMatchIn(string).length
   }
-  val result = parse(mol, 0)
-  result
+  mol.count(_.isUpper) - count(mol, "Rn") - count(mol, "Ar") - 2 * count(mol, "Y") - 1
 }
