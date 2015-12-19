@@ -1,18 +1,22 @@
 object day18 {
   type Board = Vector[Vector[Boolean]]
   val input: Board = common.loadPackets(List("day18.txt")).map { line => line.map({ case '#' => true; case _ => false }).toVector }.toVector
+
   def lineToString(line: Vector[Boolean]): String = {
     line.map({ x: Boolean => if (x) '#' else '.' }).mkString
   }
+
   def print(lines: Board): Unit = {
     println(lines.map(lineToString).mkString("\n"))
   }
+
   def lookup(board: Board, i: Int, j: Int): Boolean =
     try {
       board(i)(j)
     } catch {
       case e: Exception => false
     }
+
   def numberOfLiveNeighbors(rows: Board, i: Int, j: Int) = {
     (for {
       ii <- (i - 1) to (i + 1)
@@ -20,15 +24,17 @@ object day18 {
       if lookup(rows, ii, jj) && ((ii, jj) !=(i, j))
     } yield 1).sum
   }
+
+  def isCorner(i: Int, j: Int, size: Int): Boolean = {
+    ((i == 0) && (j == 0)) ||
+      ((i == size - 1) && (j == 0)) ||
+      ((i == 0) && (j == size - 1)) ||
+      ((i == size - 1) && (j == size - 1))
+  }
+
   def nextState(rows: Vector[Vector[Boolean]], i: Int, j: Int): Boolean = {
-    if ((i == 0) && (j == 0)) true
-    else if ((i == rows.size-1) && (j == 0)) true
-    else if ((i == 0) && (j == rows.size-1)) true
-    else if ((i == rows.size-1) && (j == rows.size-1)) true
-    else {
-      val currentlyOn = rows(i)(j)
-      val neighbors = numberOfLiveNeighbors(rows, i, j)
-      (neighbors, currentlyOn) match {
+    isCorner(i, j, rows.size) || {
+      (numberOfLiveNeighbors(rows, i, j), rows(i)(j)) match {
         case (3, _) => true
         case (2, true) => true
         case _ => false
@@ -37,13 +43,8 @@ object day18 {
   }
 
   def nextGeneration(rows: Board, i: Int): Board = {
-    println(i)
-    print(rows)
-    (for (i <- rows.indices)
-      yield {
-        (for (j <- rows(0).indices)
-          yield nextState(rows, i, j)
-          ).toVector
+    (for (i <- rows.indices) yield {
+        (for (j <- rows(0).indices) yield nextState(rows, i, j)).toVector
       }).toVector
   }
 
