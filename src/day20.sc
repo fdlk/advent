@@ -3,12 +3,12 @@ object day20 {
   val visited: scala.collection.mutable.Map[Int, Int] = scala.collection.mutable.Map.empty[Int, Int]
   def elves(limit: Int) = {
     @tailrec
-    def elf(candidate: Int): Unit = {
-      if (candidate <= limit) {
-        for {i <- (candidate to limit by candidate) take 50} {
-          visited.put(i, visited.get(i).getOrElse(0) + candidate)
+    def elf(num: Int): Unit = {
+      if (num <= limit) {
+        for {i <- (num to limit by num) take 50} {
+          visited.put(i, visited.get(i).getOrElse(0) + num)
         }
-        elf(candidate + 1)
+        elf(num + 1)
       }
     }
     elf(1)
