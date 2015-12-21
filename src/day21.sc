@@ -3,14 +3,13 @@ object day21 {
     override def toString = name
   }
 
-  // 1
   val weapons: Set[Item] = Set(
     Item("Dagger", 8, 4, 0),
     Item("Shortsword", 10, 5, 0),
     Item("Warhammer", 25, 6, 0),
     Item("Longsword", 40, 7, 0),
     Item("Greataxe", 74, 8, 0))
-  // 0-1
+
   val armor: Set[Item] = Set(
     Item("No Armor", 0, 0, 0),
     Item("Leather", 13, 0, 1),
@@ -18,7 +17,7 @@ object day21 {
     Item("Splintmail", 53, 0, 3),
     Item("Bandedmail", 75, 0, 4),
     Item("Platemail", 102, 0, 5))
-  // 0-2
+
   val rings: Set[Item] = Set(
     Item("None 1", 0, 0, 0),
     Item("None 2", 0, 0, 0),
@@ -31,8 +30,8 @@ object day21 {
   )
 
   case class Hero(name: String, hp: Int, damage: Int, armor: Int) {
-    def takeHit(damageScore: Int): Option[Hero] = {
-      val damageTaken = Math.max(damageScore - armor, 1)
+    def takeHit(hitDamage: Int): Option[Hero] = {
+      val damageTaken = Math.max(hitDamage - armor, 1)
       if (damageTaken >= hp) None
       else Some(Hero(name, hp - damageTaken, damage, armor))
     }
@@ -42,10 +41,10 @@ object day21 {
   }
 
   def attackerWins(attacker: Hero, defender: Hero): Boolean = {
-    val result = defender.takeHit(attacker.damage)
-    result match {
+    val fogOfWar = defender.takeHit(attacker.damage)
+    fogOfWar match {
       case None => true
-      case Some(newDefender) => !attackerWins(newDefender, attacker)
+      case Some(survivor) => !attackerWins(survivor, attacker)
     }
   }
 
@@ -57,9 +56,9 @@ object day21 {
     armor <- armor
     ring1 <- rings
     ring2 <- rings - ring1
-    playerDonned = player.don(weapon).don(armor).don(ring1).don(ring2)
-    if attackerWins(playerDonned, boss)
-  } yield weapon.cost + armor.cost + ring1.cost + ring2.cost).min
+    equippedPlayer = player.don(weapon).don(armor).don(ring1).don(ring2)
+    if attackerWins(equippedPlayer, boss)
+  } yield (weapon.cost + armor.cost + ring1.cost + ring2.cost, weapon, armor, ring1, ring2)).minBy{_._1}
 
   val mostExpensiveLoss = (for {
     weapon <- weapons
@@ -68,6 +67,6 @@ object day21 {
     ring2 <- rings - ring1
     playerDonned = player.don(weapon).don(armor).don(ring1).don(ring2)
     if !attackerWins(playerDonned, boss)
-  } yield weapon.cost + armor.cost + ring1.cost + ring2.cost).max
+  } yield (weapon.cost + armor.cost + ring1.cost + ring2.cost, weapon, armor, ring1, ring2)).maxBy{_._1}
 
 }
