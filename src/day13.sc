@@ -1,12 +1,11 @@
 import scala.util.parsing.combinator.JavaTokenParsers
-
 object day13 {
   type Guest = String
 
   case class Relationship(guests: Set[Guest], happiness: Int)
 
   class RelationshipParser extends JavaTokenParsers {
-    def guest: Parser[Guest] = """\w+""".r ^^ identity
+    def guest: Parser[Guest] = """\w+""".r
 
     def rule: Parser[Relationship] =
       (guest <~ "would") ~ ("gain" | "lose") ~ wholeNumber ~
@@ -19,8 +18,8 @@ object day13 {
   }
 
   object RelationshipParser extends RelationshipParser
-
-  val relationships = common.loadPackets(List("day13", "day13.txt")).map(RelationshipParser.parseAll(RelationshipParser.rule, _).get)
+  val relationships = common.loadPackets(List("day13", "day13.txt"))
+    .map(RelationshipParser.parseAll(RelationshipParser.rule, _).get)
   val guests = relationships.flatMap(_.guests).toSet
 
   def happiness(combination: List[Guest]): Int = {
