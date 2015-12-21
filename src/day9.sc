@@ -12,15 +12,14 @@ object day9 {
   val cities = roads.keySet.reduceLeft(_ union _)
 
   /**
-   * Creates a route past a set of cities starting in city
+   * Creates all route past toVisit starting in city
    */
   def visit(city: City, toVisit: Set[City]): Set[Int] = {
     if (toVisit.isEmpty) { Set(0) }
     else for {
-      nextCity <- toVisit
+      nextCity <- toVisit if roads.contains(Set(city, nextCity))
       restDistance <- visit(nextCity, toVisit - nextCity)
-      stepDistance <- roads.get(Set(city, nextCity))
-    } yield stepDistance + restDistance
+    } yield roads.get(Set(city, nextCity)).get + restDistance
   }
   (cities flatMap { city => visit(city, cities - city) }) min
 }
