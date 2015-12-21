@@ -1,54 +1,36 @@
-object day13 {
+import scala.util.parsing.combinator.JavaTokenParsers
 
+object day13 {
   type Guest = String
 
-  val gain = """(\w+) would gain ([0-9]+) happiness units by sitting next to (\w+).""".r
-                                                  //> gain  : scala.util.matching.Regex = (\w+) would gain ([0-9]+) happiness unit
-                                                  //| s by sitting next to (\w+).
-  val lose = """(\w+) would lose ([0-9]+) happiness units by sitting next to (\w+).""".r
-                                                  //> lose  : scala.util.matching.Regex = (\w+) would lose ([0-9]+) happiness unit
-                                                  //| s by sitting next to (\w+).
+  case class Relationship(guests: Set[Guest], happiness: Int)
 
-  def parse(line: String) = line match {
-    case gain(guest, difference, nextTo) => Set(guest, nextTo) -> difference.toInt
-    case lose(guest, difference, nextTo) => Set(guest, nextTo) -> -difference.toInt
-  }                                               //> parse: (line: String)(scala.collection.immutable.Set[String], Int)
+  class RelationshipParser extends JavaTokenParsers {
+    def guest: Parser[Guest] = """\w+""".r ^^ identity
 
-  def combineRules(rules:Map[Set[Guest],Int], rule:(Set[Guest], Int)) = {
-    rule match {
-      case (g, diff) => rules.updated(g, rules.getOrElse(g, 0) + diff)
-    }
-  }                                               //> combineRules: (rules: Map[Set[day13.day13.Guest],Int], rule: (Set[day13.day1
-                                                  //| 3.Guest], Int))scala.collection.immutable.Map[Set[day13.day13.Guest],Int]
+    def rule: Parser[Relationship] =
+      (guest <~ "would") ~ ("gain" | "lose") ~ wholeNumber ~
+        ("happiness units by sitting next to" ~> guest <~ ".") ^^ { case guest1 ~ effect ~ happiness ~ guest2 =>
+        effect match {
+          case "gain" => Relationship(Set(guest1, guest2), happiness.toInt)
+          case "lose" => Relationship(Set(guest1, guest2), -happiness.toInt)
+        }
+      }
+  }
 
-  val emptyMap: Map[Set[Guest], Int] = Map()      //> emptyMap  : Map[Set[day13.day13.Guest],Int] = Map()
-  val rules: Map[Set[Guest], Int] = common.loadPackets(List("day13", "day13.txt")).map(parse).foldLeft(emptyMap)(combineRules)
-                                                  //> rules  : Map[Set[day13.day13.Guest],Int] = Map(Set(Eric, Carol) -> 195, Set(
-                                                  //| Mallory, Bob) -> -9, Set(Bob, Alice) -> 42, Set(Mallory, Alice) -> 131, Set(
-                                                  //| Eric, Alice) -> -140, Set(Frank, Eric) -> 118, Set(George, Eric) -> -37, Set
-                                                  //| (Mallory, Carol) -> 43, Set(Eric, Bob) -> 87, Set(Frank, David) -> -88, Set(
-                                                  //| David, Alice) -> -46, Set(Carol, Alice) -> -9, Set(Frank, Bob) -> 132, Set(G
-                                                  //| eorge, David) -> 94, Set(Mallory, David) -> -39, Set(George, Bob) -> 5, Set(
-                                                  //| George, Alice) -> -6, Set(David, Carol) -> -116, Set(Eric, David) -> 33, Set
-                                                  //| (George, Frank) -> 9, Set(David, Bob) -> -33, Set(Mallory, Frank) -> -165, S
-                                                  //| et(Frank, Alice) -> -6, Set(Carol, Bob) -> -160, Set(Frank, Carol) -> 98, Se
-                                                  //| t(Mallory, George) -> 8, Set(George, Carol) -> 1, Set(Mallory, Eric) -> -13)
-                                                  //| 
+  object RelationshipParser extends RelationshipParser
 
-  val guests: Set[Guest] = rules.keySet.reduceLeft(_ union _)
-                                                  //> guests  : Set[day13.day13.Guest] = Set(Carol, George, Bob, Frank, Eric, Alic
-                                                  //| e, David, Mallory)
+  val relationships = common.loadPackets(List("day13", "day13.txt")).map(RelationshipParser.parseAll(RelationshipParser.rule, _).get)
+  val guests = relationships.flatMap(_.guests).toSet
 
-  def happiness(combinations: List[Guest]): Int = {
-    val circle = combinations ::: (combinations take 1)
+  def happiness(combination: List[Guest]): Int = {
+    val circle = combination ::: (combination take 1)
     (for {
       pair <- circle.sliding(2)
-      happiness <- rules.get(pair.toSet)
-    } yield happiness).sum
-  }                                               //> happiness: (combinations: List[day13.day13.Guest])Int
+      relationship <- relationships.filter(_.guests == pair.toSet)
+    } yield relationship.happiness).sum
+  }
 
   val sol1 = guests.toList.permutations map happiness max
-                                                  //> sol1  : Int = 733
   val sol2 = (guests + "Fleur").toList.permutations map happiness max
-                                                  //> sol2  : Int = 725
 }
