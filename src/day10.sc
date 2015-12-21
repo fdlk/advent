@@ -1,63 +1,14 @@
 object day10 {
-  def elvesSayInternal(s: List[Char], c: Char, i: Int, prefix: String): String = s match {
-    case Nil                 => prefix + s"$i$c"
+  def elvesSayInternal(s: List[Char], c: Char, i: Int, prefix: StringBuilder): String = s match {
+    case Nil                 => prefix.append(i).append(c).toString
     case c2 :: s1 if c == c2 => elvesSayInternal(s1, c, i + 1, prefix)
-    case c2 :: s1            => elvesSayInternal(s1, c2, 1, prefix + "" + i + c)
-  }                                               //> elvesSayInternal: (s: List[Char], c: Char, i: Int, prefix: String)String
+    case c2 :: s1            => elvesSayInternal(s1, c2, 1, prefix.append(i).append(c))
+  }
 
-  def elvesSay(s: String): String = {
-    s.toList match {
-      case c :: s1 => elvesSayInternal(s1, c, 1, "")
-    }
-  }                                               //> elvesSay: (s: String)String
-  
-  elvesSay("111221")                              //> res0: String = 312211
-  
-  val start: String = "1321131112"                //> start  : String = 1321131112
+  def elvesSay(s: String, i:Int): String = {
+    elvesSayInternal(s.substring(1).toList, s.charAt(0), 1, new StringBuilder())
+  }
 
-	def reduce ( s: String, i:Int) = {
-		println(i)
-		elvesSay(s)
-	}                                         //> reduce: (s: String, i: Int)String
-  (1 to 50).foldLeft (start)(reduce).length       //> 1
-                                                  //| 2
-                                                  //| 3
-                                                  //| 4
-                                                  //| 5
-                                                  //| 6
-                                                  //| 7
-                                                  //| 8
-                                                  //| 9
-                                                  //| 10
-                                                  //| 11
-                                                  //| 12
-                                                  //| 13
-                                                  //| 14
-                                                  //| 15
-                                                  //| 16
-                                                  //| 17
-                                                  //| 18
-                                                  //| 19
-                                                  //| 20
-                                                  //| 21
-                                                  //| 22
-                                                  //| 23
-                                                  //| 24
-                                                  //| 25
-                                                  //| 26
-                                                  //| 27
-                                                  //| 28
-                                                  //| 29
-                                                  //| 30
-                                                  //| 31
-                                                  //| 32
-                                                  //| 33
-                                                  //| 34
-                                                  //| 35
-                                                  //| 36
-                                                  //| 37
-                                                  //| 38
-                                                  //| 39
-                                                  //| 40
-                                                  //| res1: Int = 492982
+  (1 to 40).foldLeft("1321131112")(elvesSay).length
+  (1 to 50).foldLeft("1321131112")(elvesSay).length
 }
