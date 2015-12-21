@@ -1,12 +1,10 @@
 object day18 {
-
   case class Board(lights: Vector[Vector[Boolean]]) {
-    def print(): Unit = {
-      println(lights.map(_.map {
+    override def toString = {
+      lights.map(_.map {
         if (_) '#' else '.'
-      }).mkString("\n"))
+      }.mkString).mkString("\n", "\n", "\n")
     }
-
     def lookup(i: Int, j: Int): Boolean =
       try {
         lights(i)(j)
@@ -42,7 +40,6 @@ object day18 {
       lights.map(_.count(identity)).sum
     }
   }
-
   val input = common.loadPackets(List("day18.txt")).map(_.map(_ == '#').toVector).toVector
 
   def isCorner(i: Int, j: Int, size: Int): Boolean = {
@@ -50,5 +47,6 @@ object day18 {
     edges.contains(i) && edges.contains(j)
   }
 
-  (1 to 100).foldLeft(Board(input))(_.nextGeneration(_)).countLights
+  val gen100 = (1 to 100).foldLeft(Board(input))(_.nextGeneration(_))
+  gen100.countLights
 }
