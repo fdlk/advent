@@ -40,7 +40,7 @@ object day18 {
       lights.map(_.count(identity)).sum
     }
   }
-  val input = common.loadPackets(List("day18.txt")).map(_.map(_ == '#').toVector).toVector
+  val input:Vector[Vector[Boolean]] = common.loadPackets(List("day18.txt")).map(_.map(_ == '#').toVector).toVector
 
   def isCorner(i: Int, j: Int, size: Int): Boolean = {
     val edges = Set(0, size-1)
