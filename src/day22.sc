@@ -44,7 +44,7 @@ object day22 {
     def bossIsDead: Option[Int] = None
     def lookingGood: Boolean = false
     def nextTurn(spell: Spell): GameState = {
-      playerTakeHitPart2. // toggle this line for part1/part2
+      playerTakeHitPart2.
         resolveSpellEffects
         .playerCastSpell(spell)
         .resolveSpellEffects
@@ -66,23 +66,23 @@ object day22 {
     override def lookingGood = true
   }
   case class PlayerLost(player:Player) extends GameState
-  case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect]) extends GameState {
+  case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect], hardmode:Boolean) extends GameState {
     override def lookingGood = player.manaSpent < 1390 // prune branches that spend too much mana
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
 
     def effectIsRunning(spell: Spell): Boolean = spellEffects.exists(_.spell == spell)
     override def countDownSpellEffects: Battle = Battle(player, boss,
-      for (effect <- spellEffects; countedDownEffect <- effect.countDown) yield countedDownEffect)
+      for (effect <- spellEffects; countedDownEffect <- effect.countDown) yield countedDownEffect, hardmode)
     override def resolveSpellEffect(spellEffect: SpellEffect): GameState = spellEffect.spell match {
-      case Shield => Battle(player.withArmor(7), boss, spellEffects)
+      case Shield => Battle(player.withArmor(7), boss, spellEffects, hardmode)
       case Poison => boss.takeDamage(3) match {
         case None => PlayerWon(player)
-        case Some(poisonedBoss) => Battle(player, poisonedBoss, spellEffects)
+        case Some(poisonedBoss) => Battle(player, poisonedBoss, spellEffects, hardmode)
       }
-      case Recharge => Battle(player.recharge(101), boss, spellEffects)
+      case Recharge => Battle(player.recharge(101), boss, spellEffects, hardmode)
     }
     override def resolveSpellEffects: GameState = {
-      val initialState = Battle(player.withArmor(0), boss, spellEffects).asInstanceOf[GameState]
+      val initialState = Battle(player.withArmor(0), boss, spellEffects, hardmode).asInstanceOf[GameState]
       val result:GameState = spellEffects.foldLeft(initialState)((status, spell)=>status.resolveSpellEffect(spell))
       result.countDownSpellEffects
     }
@@ -95,31 +95,31 @@ object day22 {
           case MagicMissile => {
             boss.takeDamage(4) match {
               case None => PlayerWon(drainedPlayer)
-              case Some(survivingBoss) => Battle(drainedPlayer, survivingBoss, spellEffects)
+              case Some(survivingBoss) => Battle(drainedPlayer, survivingBoss, spellEffects, hardmode)
             }
           }
           case Drain => {
             boss.takeDamage(2) match {
               case None => PlayerWon(drainedPlayer)
-              case Some(survivingBoss) => Battle(drainedPlayer.heal(2), survivingBoss, spellEffects)
+              case Some(survivingBoss) => Battle(drainedPlayer.heal(2), survivingBoss, spellEffects, hardmode)
             }
           }
-          case Shield => Battle(drainedPlayer, boss, SpellEffect(Shield, 6) :: spellEffects)
-          case Poison => Battle(drainedPlayer, boss, SpellEffect(Poison, 6) :: spellEffects)
-          case Recharge => Battle(drainedPlayer, boss, SpellEffect(Recharge, 5) :: spellEffects)
+          case Shield => Battle(drainedPlayer, boss, SpellEffect(Shield, 6) :: spellEffects, hardmode)
+          case Poison => Battle(drainedPlayer, boss, SpellEffect(Poison, 6) :: spellEffects, hardmode)
+          case Recharge => Battle(drainedPlayer, boss, SpellEffect(Recharge, 5) :: spellEffects, hardmode)
         }
       }
     }
     override def playerTakeHitPart2: GameState = {
-      player.takeHit(1) match {
+      if(!hardmode) this else player.takeHit(1) match {
         case None => PlayerLost(player)
-        case Some(nickedPlayer) => Battle(nickedPlayer, boss, spellEffects)
+        case Some(nickedPlayer) => Battle(nickedPlayer, boss, spellEffects, hardmode)
       }
     }
     override def bossHitPlayer: GameState = {
       player.takeHit(boss.damage) match {
         case None => PlayerLost(player)
-        case Some(survivingPlayer) => Battle(survivingPlayer, boss, spellEffects)
+        case Some(survivingPlayer) => Battle(survivingPlayer, boss, spellEffects, hardmode)
       }
     }
   }
@@ -128,7 +128,8 @@ object day22 {
     println(i, gameStates.size)
     gameStates.flatMap(_.nextTurn)
   }
-  val initialGameState: GameState = Battle(Player(50, 500, 0, Nil), Boss(58, 9), Nil)
+  val hardmode: Boolean = false // part 1 / 2
+  val initialGameState: GameState = Battle(Player(50, 500, 0, Nil), Boss(58, 9), Nil, hardmode)
   val solutions: List[GameState] = (1 to 30).foldLeft(List(initialGameState))(nextTurn)
   val minManaSpent = (for {
     s <- solutions
