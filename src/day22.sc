@@ -37,10 +37,10 @@ object day22 {
   case class PlayerWon(manaSpent: Int) extends GameState {
     println(manaSpent)
   }
-  case class PlayerOOM() extends GameState
-  case class EffectStillRunning() extends GameState
 
-  case class Spell(name: String, mana: Int)
+  case class Spell(name: String, mana: Int){
+    def effectIsRunning(gameState: Battling): Boolean = gameState.spellEffects.exists(_.spell == this)
+  }
   object Recharge extends Spell("Recharge", 229)
   object MagicMissile extends Spell("Magic Missile", 53)
   object Drain extends Spell("Drain", 73)
@@ -72,15 +72,9 @@ object day22 {
     }
   }
 
-  def effectIsRunning(spell: Spell, gameState: Battling): Boolean = {
-    gameState.spellEffects.exists({
-      _.spell.name == spell.name
-    })
-  }
-
   def castSpell(gameState: Battling, spell: Spell): GameState = {
-    if (gameState.player.mana < spell.mana) PlayerOOM()
-    else if (effectIsRunning(spell, gameState)) EffectStillRunning()
+    if (gameState.player.mana < spell.mana) PlayerLost()
+    else if (spell.effectIsRunning(gameState)) PlayerLost()
     else {
       val drainedPlayer = gameState.player.cast(spell.mana)
       spell match {
