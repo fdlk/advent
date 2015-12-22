@@ -1,10 +1,8 @@
 object day22 {
-
-  case class Spell(name: String, mana: Int)
   case class SpellEffect(spell: Spell, turnsLeft: Int)
+
   case class Player(hp: Int, mana: Int, armor: Int, manaSpent: Int) {
     def withArmor(newArmor: Int) = Player(hp, mana, newArmor, manaSpent)
-
     def takeHit(hitDamage: Int): Option[Player] = {
       val damageTaken = Math.max(hitDamage - armor, 1)
       if (damageTaken >= hp) None
@@ -30,6 +28,7 @@ object day22 {
   }
 
   class GameState
+
   case class Battling(player: Player, boss: Boss, spellEffects: List[SpellEffect]) extends GameState {
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
   }
@@ -38,24 +37,22 @@ object day22 {
   case class PlayerWon(manaSpent: Int) extends GameState {
     println(manaSpent)
   }
-
   case class PlayerOOM() extends GameState
   case class EffectStillRunning() extends GameState
-  val recharge = Spell("Recharge", 229)
-  val magicMissile = Spell("Magic Missile", 53)
-  val drain = Spell("Drain", 73)
-  val shield = Spell("Shield", 113)
-  val poison = Spell("Poison", 173)
-  val spells: List[Spell] = List(recharge, magicMissile, poison, shield, drain)
-  def resolveSpellEffect(playerAndBoss: (Player, Option[Boss]), spellEffect: SpellEffect): (Player, Option[Boss]) =
-    playerAndBoss match {
-      case (player, Some(boss)) => spellEffect match {
-        case s: SpellEffect if s.spell == shield => (player.withArmor(7), Some(boss))
-        case s: SpellEffect if s.spell == poison => (player, boss.takeDamage(3))
-        case s: SpellEffect if s.spell == recharge => (player.recharge(101), Some(boss))
-      }
-      case _ => playerAndBoss
-    }
+
+  case class Spell(name: String, mana: Int)
+  object Recharge extends Spell("Recharge", 229)
+  object MagicMissile extends Spell("Magic Missile", 53)
+  object Drain extends Spell("Drain", 73)
+  object Shield extends Spell("Shield", 113)
+  object Poison extends Spell("Poison", 173)
+  val spells: List[Spell] = List(Recharge, MagicMissile, Poison, Shield, Drain)
+
+  def resolveSpellEffect(player: Player, boss: Boss, spell: Spell): (Player, Option[Boss]) = spell match {
+    case Shield => (player.withArmor(7), Some(boss))
+    case Poison => (player, boss.takeDamage(3))
+    case Recharge => (player.recharge(101), Some(boss))
+  }
 
   def countDownSpellEffects(effects: List[SpellEffect]): List[SpellEffect] = for {
     effect <- effects if effect.turnsLeft > 1
@@ -63,7 +60,10 @@ object day22 {
 
   def resolveSpellEffects(gameState: Battling): GameState = {
     val initial: (Player, Option[Boss]) = (gameState.player.withArmor(0), Some(gameState.boss))
-    val (buffedPlayer, fogOfWar) = gameState.spellEffects.foldLeft(initial)(resolveSpellEffect)
+    val (buffedPlayer, fogOfWar) = gameState.spellEffects.foldLeft(initial)({
+      case ((player, None), _) => (player, None);
+      case ((player, Some(boss)), SpellEffect(spell, _)) => resolveSpellEffect(player, boss, spell)
+    })
     fogOfWar match {
       case None => PlayerWon(buffedPlayer.manaSpent)
       case Some(bossSurvived) => {
@@ -83,29 +83,29 @@ object day22 {
     else if (effectIsRunning(spell, gameState)) EffectStillRunning()
     else {
       val drainedPlayer = gameState.player.cast(spell.mana)
-      spell.name match {
-        case magicMissile.name => {
+      spell match {
+        case MagicMissile => {
           val fogOfWar = gameState.boss.takeDamage(4)
           fogOfWar match {
             case None => PlayerWon(drainedPlayer.manaSpent)
             case Some(survivingBoss) => Battling(drainedPlayer, survivingBoss, gameState.spellEffects)
           }
         }
-        case drain.name => {
+        case Drain => {
           val fogOfWar = gameState.boss.takeDamage(2)
           fogOfWar match {
             case None => PlayerWon(drainedPlayer.manaSpent)
             case Some(survivingBoss) => Battling(drainedPlayer.heal(2), survivingBoss, gameState.spellEffects)
           }
         }
-        case shield.name => {
-          Battling(drainedPlayer, gameState.boss, SpellEffect(shield, 6) :: gameState.spellEffects)
+        case Shield => {
+          Battling(drainedPlayer, gameState.boss, SpellEffect(Shield, 6) :: gameState.spellEffects)
         }
-        case poison.name => {
-          Battling(drainedPlayer, gameState.boss, SpellEffect(poison, 6) :: gameState.spellEffects)
+        case Poison => {
+          Battling(drainedPlayer, gameState.boss, SpellEffect(Poison, 6) :: gameState.spellEffects)
         }
-        case recharge.name => {
-          Battling(drainedPlayer, gameState.boss, SpellEffect(recharge, 5) :: gameState.spellEffects)
+        case Recharge => {
+          Battling(drainedPlayer, gameState.boss, SpellEffect(Recharge, 5) :: gameState.spellEffects)
         }
       }
     }
