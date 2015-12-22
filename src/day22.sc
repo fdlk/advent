@@ -35,16 +35,18 @@ object day22 {
   }
 
   case class PlayerLost() extends GameState
-  case class PlayerWon(manaSpent: Int) extends GameState
+  case class PlayerWon(manaSpent: Int) extends GameState{
+    println(manaSpent)
+  }
   case class PlayerOOM() extends GameState
   case class EffectStillRunning() extends GameState
+  val fizzle = Spell("Fizzle", 0)
+  val recharge = Spell("Recharge", 229)
   val magicMissile = Spell("Magic Missile", 53)
   val drain = Spell("Drain", 73)
   val shield = Spell("Shield", 113)
   val poison = Spell("Poison", 173)
-  val recharge = Spell("Recharge", 229)
-  val fizzle = Spell("Fizzle", 0)
-  val spells: List[Spell] = List(magicMissile, drain, shield, poison, recharge, fizzle)
+  val spells: List[Spell] = List(fizzle, recharge, magicMissile, poison, shield, drain)
   def resolveSpellEffect(playerAndBoss: (Player, Option[Boss]), spellEffect: SpellEffect): (Player, Option[Boss]) =
     playerAndBoss match {
       case (player, Some(boss)) => spellEffect match {
@@ -52,6 +54,7 @@ object day22 {
         case s: SpellEffect if s.spell == poison => (player, boss.takeDamage(3))
         case s: SpellEffect if s.spell == recharge => (player.recharge(101), Some(boss))
       }
+      case _ => playerAndBoss
     }
 
   def countDownSpellEffects(effects: List[SpellEffect]): List[SpellEffect] = for {
@@ -70,7 +73,9 @@ object day22 {
   }
 
   def effectIsRunning(spell: Spell, gameState: Battling): Boolean = {
-    gameState.spellEffects.exists({ _.spell.name == spell.name })
+    gameState.spellEffects.exists({
+      _.spell.name == spell.name
+    })
   }
 
   def castSpell(gameState: Battling, spell: Spell): GameState = {
@@ -132,24 +137,45 @@ object day22 {
     case x => x
   }
 
+
+  val initialGameState: GameState = Battling(Player(50, 500, 0, 0), Boss(58, 9), List())
   def resolve(history: List[Spell]): GameState = {
-    val initialGameState: GameState = Battling(Player(50, 500, 0, 0), Boss(58, 9), List())
     history.foldLeft(initialGameState)(reduceGameState)
   }
-  def oneMoreSpell(history: List[Spell], i: Int) = {
-    for {
-      spell <- spells
-      state = resolve(spell::history) if (state match {
-        case b: Battling => true
-        case PlayerWon(_) => true
-        case PlayerLost() => false
-        case PlayerOOM() => false
-        case EffectStillRunning() => false
-      }
-      )
-    } yield state
+  resolve(List(poison, poison))
+
+  case class History(spells: List[Spell], gameState: GameState) {
+    def isWon: Option[Int] = gameState match {
+      case PlayerWon(manaSpent) => Some(manaSpent)
+      case _ => None
+    }
+
+    def isNotLost: Boolean = gameState match {
+      case PlayerWon(manaSpent) => true
+      case Battling(player, _,_) => player.manaSpent < 2400
+      case _ => false
+    }
   }
 
-  val emptyList: List[Spell] = Nil
-  (1 to 10).foldLeft(emptyList)(oneMoreSpell)
+  def nSpells(n: Int): List[History] = {
+    println(n)
+    if (n == 0) {
+      List(History(Nil,initialGameState))
+    }
+    else {
+      val result = for {
+        history <- nSpells(n - 1)
+        s <- spells
+        updatedGameState = reduceGameState(history.gameState, s)
+        updatedHistory = History(s::history.spells, updatedGameState)
+        if updatedHistory.isNotLost
+      } yield updatedHistory
+      println(n, result.size)
+      result
+    }
+  }
+  (for {
+    history <- nSpells(10)
+    manaSpent <- history.isWon
+  } yield (manaSpent, history)).minBy(_._1)
 }
