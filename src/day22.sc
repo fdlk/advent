@@ -1,15 +1,16 @@
 object day22 {
 
-  case class Player(hp: Int, mana: Int, armor: Int, manaSpent: Int) {
-    def withArmor(newArmor: Int) = Player(hp, mana, newArmor, manaSpent)
+  case class Player(hp: Int, mana: Int, armor: Int, spellsCast: List[Spell]) {
+    def withArmor(newArmor: Int) = Player(hp, mana, newArmor, spellsCast)
     def takeHit(hitDamage: Int): Option[Player] = {
       val damageTaken = Math.max(hitDamage - armor, 1)
       if (damageTaken >= hp) None
-      else Some(Player(hp - damageTaken, mana, armor, manaSpent))
+      else Some(Player(hp - damageTaken, mana, armor, spellsCast))
     }
-    def heal(healed: Int) = Player(hp + healed, mana, armor, manaSpent)
-    def cast(cost: Int) = Player(hp, mana - cost, armor, manaSpent + cost)
-    def recharge(buff: Int) = Player(hp, mana + buff, armor, manaSpent)
+    def heal(healed: Int) = Player(hp + healed, mana, armor, spellsCast)
+    def cast(spell:Spell) = Player(hp, mana - spell.mana, armor, spellsCast ::: List(spell))
+    def recharge(buff: Int) = Player(hp, mana + buff, armor, spellsCast)
+    def manaSpent: Int = spellsCast.map(_.mana).sum
     override def toString = "Player has " + hp + " hit points, " + armor + " armor, " + mana + " mana"
   }
 
@@ -28,61 +29,78 @@ object day22 {
   object Shield extends Spell("Shield", 113)
   object Poison extends Spell("Poison", 173)
   case class SpellEffect(spell: Spell, turnsLeft: Int) {
-    def countDown:Option[SpellEffect] = if(turnsLeft == 1) None else Some(SpellEffect(spell, turnsLeft - 1))
+    def countDown:Option[SpellEffect] =
+      if(turnsLeft == 1) None
+      else Some(SpellEffect(spell, turnsLeft - 1))
   }
 
-  abstract class Status {
-    def playerCastSpell(spell: Spell): Status = this
-    def resolveSpellEffect(spellEffect: SpellEffect): Status = this
-    def resolveSpellEffects: Status = this
-    def countDownSpellEffects: Status = this
-   // def playerTakeHitPart2 = this
+  abstract class GameState {
+    def playerCastSpell(spell: Spell): GameState = this
+    def resolveSpellEffect(spellEffect: SpellEffect): GameState = this
+    def resolveSpellEffects: GameState = this
+    def countDownSpellEffects: GameState = this
+    def playerTakeHitPart2 = this
     def bossHitPlayer = this
-    def isWon: Option[Int] = None
-    def isNotLost: Boolean = false
+    def bossIsDead: Option[Int] = None
+    def lookingGood: Boolean = false
+    def nextTurn(spell: Spell): GameState = {
+      playerTakeHitPart2. // toggle this line for part1/part2
+        resolveSpellEffects
+        .playerCastSpell(spell)
+        .resolveSpellEffects
+        .bossHitPlayer
+    }
+    def nextTurn: List[GameState] = {
+      if (bossIsDead.isDefined) {
+        List(this)
+      } else for {
+        spell <- List(Recharge, MagicMissile, Poison, Shield, Drain)
+        updatedGameState = nextTurn(spell) if updatedGameState.lookingGood
+      } yield updatedGameState
+    }
   }
 
-  case class PlayerWon(manaSpent: Int) extends Status {
-    println(manaSpent)
-    override def isWon = Some(manaSpent)
-    override def isNotLost = true
+  case class PlayerWon(player:Player) extends GameState {
+    println(bossIsDead)
+    override def bossIsDead = Some(player.spellsCast.map(_.mana).sum)
+    override def lookingGood = true
   }
-  case class PlayerLost() extends Status
-  case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect]) extends Status {
-    override def isNotLost = player.manaSpent < 1390 // prune branches that spend too much mana
+  case class PlayerLost(player:Player) extends GameState
+  case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect]) extends GameState {
+    override def lookingGood = player.manaSpent < 1390 // prune branches that spend too much mana
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
 
     def effectIsRunning(spell: Spell): Boolean = spellEffects.exists(_.spell == spell)
     override def countDownSpellEffects: Battle = Battle(player, boss,
       for (effect <- spellEffects; countedDownEffect <- effect.countDown) yield countedDownEffect)
-    override def resolveSpellEffect(spellEffect: SpellEffect): Status = spellEffect.spell match {
+    override def resolveSpellEffect(spellEffect: SpellEffect): GameState = spellEffect.spell match {
       case Shield => Battle(player.withArmor(7), boss, spellEffects)
       case Poison => boss.takeDamage(3) match {
-        case None => PlayerWon(player.manaSpent)
+        case None => PlayerWon(player)
         case Some(poisonedBoss) => Battle(player, poisonedBoss, spellEffects)
       }
       case Recharge => Battle(player.recharge(101), boss, spellEffects)
     }
-    override def resolveSpellEffects: Status = {
-      val initialState = Battle(player.withArmor(0), boss, spellEffects).asInstanceOf[Status]
-      val result:Status = spellEffects.foldLeft(initialState)((status, spell)=>status.resolveSpellEffect(spell))
+    override def resolveSpellEffects: GameState = {
+      val initialState = Battle(player.withArmor(0), boss, spellEffects).asInstanceOf[GameState]
+      val result:GameState = spellEffects.foldLeft(initialState)((status, spell)=>status.resolveSpellEffect(spell))
       result.countDownSpellEffects
     }
-    override def playerCastSpell(spell: Spell): Status = {
-      if (player.mana < spell.mana) PlayerLost()
-      else if (effectIsRunning(spell)) PlayerLost()
+    override def playerCastSpell(spell: Spell): GameState = {
+      if (player.mana < spell.mana) PlayerLost(player)
+      else if (effectIsRunning(spell)) PlayerLost(player)
       else {
-        val drainedPlayer = player.cast(spell.mana)
+        val drainedPlayer = player.cast(spell)
         spell match {
           case MagicMissile => {
             boss.takeDamage(4) match {
-              case None => PlayerWon(drainedPlayer.manaSpent)
+              case None => PlayerWon(drainedPlayer)
               case Some(survivingBoss) => Battle(drainedPlayer, survivingBoss, spellEffects)
             }
           }
           case Drain => {
             boss.takeDamage(2) match {
-              case None => PlayerWon(drainedPlayer.manaSpent)
+              case None => PlayerWon(drainedPlayer)
               case Some(survivingBoss) => Battle(drainedPlayer.heal(2), survivingBoss, spellEffects)
             }
           }
@@ -92,51 +110,32 @@ object day22 {
         }
       }
     }
-
-    //    override def playerTakeHitPart2: Status = {
-    //      player.takeHit(1) match {
-    //        case None => PlayerLost()
-    //        case Some(nickedPlayer) => Battle(nickedPlayer, boss, spellEffects)
-    //      }
-    //    }
-    override def bossHitPlayer: Status = {
+    override def playerTakeHitPart2: GameState = {
+      player.takeHit(1) match {
+        case None => PlayerLost(player)
+        case Some(nickedPlayer) => Battle(nickedPlayer, boss, spellEffects)
+      }
+    }
+    override def bossHitPlayer: GameState = {
       player.takeHit(boss.damage) match {
-        case None => PlayerLost()
+        case None => PlayerLost(player)
         case Some(survivingPlayer) => Battle(survivingPlayer, boss, spellEffects)
       }
     }
   }
 
-  val initialGameState: Status = Battle(Player(50, 500, 0, 0), Boss(58, 9), List())
-  def reduceGameState(status: Status, spell: Spell): Status = {
-    status.resolveSpellEffects
-      .playerCastSpell(spell)
-      .resolveSpellEffects
-      .bossHitPlayer
+  def nextTurn(gameStates: List[GameState], i: Int): List[GameState] = {
+    println(i, gameStates.size)
+    gameStates.flatMap(_.nextTurn)
   }
-  case class History(spells: List[Spell], status: Status) {
-    def update: List[History] = {
-      if (status.isWon.isDefined) {
-        List(this)
-      } else for {
-        spell <- List(Recharge, MagicMissile, Poison, Shield, Drain)
-        updatedGameState = reduceGameState(status, spell)
-        updatedHistory = History(spell :: spells, updatedGameState)
-        if updatedHistory.status.isNotLost
-      } yield updatedHistory
-    }
-  }
-  def oneMoreSpell(histories: List[History], i: Int): List[History] = {
-    println(i, histories.size)
-    histories.flatMap(_.update)
-  }
-  val solutions: List[History] = (1 to 30).foldLeft(List(History(Nil, initialGameState)))(oneMoreSpell)
+  val initialGameState: GameState = Battle(Player(50, 500, 0, Nil), Boss(58, 9), Nil)
+  val solutions: List[GameState] = (1 to 30).foldLeft(List(initialGameState))(nextTurn)
   val minManaSpent = (for {
     s <- solutions
-    manaSpent <- s.status.isWon
-  } yield (manaSpent, s.spells.reverse)).minBy(_._1)
+    manaSpent <- s.bossIsDead
+  } yield manaSpent).min
 
   // Sanity check:
   val solution:List[Spell] = List(Poison, Recharge, MagicMissile, Poison, Recharge, Shield, Poison, Drain, MagicMissile)
-  solution.foldLeft(initialGameState)(reduceGameState)
+  solution.foldLeft(initialGameState)(_.nextTurn(_))
 }
