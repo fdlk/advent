@@ -13,7 +13,7 @@ object day22 {
 
     def heal(healed: Int) = Player(hp + healed, mana, armor, manaSpent)
 
-    def cast(cost: Int) = Player(hp, mana - cost, armor, manaSpent + mana)
+    def cast(cost: Int) = Player(hp, mana - cost, armor, manaSpent + cost)
 
     def recharge(buff: Int) = Player(hp, mana + buff, armor, manaSpent)
 
@@ -35,18 +35,18 @@ object day22 {
   }
 
   case class PlayerLost() extends GameState
-  case class PlayerWon(manaSpent: Int) extends GameState{
+  case class PlayerWon(manaSpent: Int) extends GameState {
     println(manaSpent)
   }
+
   case class PlayerOOM() extends GameState
   case class EffectStillRunning() extends GameState
-  val fizzle = Spell("Fizzle", 0)
   val recharge = Spell("Recharge", 229)
   val magicMissile = Spell("Magic Missile", 53)
   val drain = Spell("Drain", 73)
   val shield = Spell("Shield", 113)
   val poison = Spell("Poison", 173)
-  val spells: List[Spell] = List(fizzle, recharge, magicMissile, poison, shield, drain)
+  val spells: List[Spell] = List(recharge, magicMissile, poison, shield, drain)
   def resolveSpellEffect(playerAndBoss: (Player, Option[Boss]), spellEffect: SpellEffect): (Player, Option[Boss]) =
     playerAndBoss match {
       case (player, Some(boss)) => spellEffect match {
@@ -107,26 +107,27 @@ object day22 {
         case recharge.name => {
           Battling(drainedPlayer, gameState.boss, SpellEffect(recharge, 5) :: gameState.spellEffects)
         }
-        case fizzle.name => {
-          gameState
-        }
       }
     }
   }
 
+  val part12 = 0
   def reduceGameState(gameState: GameState, spell: Spell): GameState = gameState match {
     case b: Battling => {
       resolveSpellEffects(b) match {
         case b: Battling => {
           castSpell(b, spell) match {
-            case b: Battling => resolveSpellEffects(b) match {
-              case Battling(player, boss, spellEffects) => {
-                player.takeHit(boss.damage) match {
-                  case None => PlayerLost()
-                  case Some(survivingPlayer) => Battling(survivingPlayer, boss, spellEffects)
+            case Battling(player, boss, spellEffects) => player.takeHit(part12) match {
+              case None => PlayerLost()
+              case Some(hitPlayer) => resolveSpellEffects(Battling(hitPlayer, boss, spellEffects)) match {
+                case Battling(player, boss, spellEffects) => {
+                  player.takeHit(boss.damage) match {
+                    case None => PlayerLost()
+                    case Some(survivingPlayer) => Battling(survivingPlayer, boss, spellEffects)
+                  }
                 }
+                case x => x
               }
-              case x => x
             }
             case x => x
           }
@@ -137,13 +138,6 @@ object day22 {
     case x => x
   }
 
-
-  val initialGameState: GameState = Battling(Player(50, 500, 0, 0), Boss(58, 9), List())
-  def resolve(history: List[Spell]): GameState = {
-    history.foldLeft(initialGameState)(reduceGameState)
-  }
-  resolve(List(poison, poison))
-
   case class History(spells: List[Spell], gameState: GameState) {
     def isWon: Option[Int] = gameState match {
       case PlayerWon(manaSpent) => Some(manaSpent)
@@ -152,30 +146,31 @@ object day22 {
 
     def isNotLost: Boolean = gameState match {
       case PlayerWon(manaSpent) => true
-      case Battling(player, _,_) => player.manaSpent < 2400
+      case Battling(player, _, _) => player.manaSpent < 1500
       case _ => false
     }
   }
 
-  def nSpells(n: Int): List[History] = {
-    println(n)
-    if (n == 0) {
-      List(History(Nil,initialGameState))
-    }
-    else {
-      val result = for {
-        history <- nSpells(n - 1)
-        s <- spells
-        updatedGameState = reduceGameState(history.gameState, s)
-        updatedHistory = History(s::history.spells, updatedGameState)
-        if updatedHistory.isNotLost
-      } yield updatedHistory
-      println(n, result.size)
-      result
-    }
+  def updateHistory(history: History): List[History] = {
+    if (history.isWon.isDefined) {
+      List(history)
+    } else for {
+      s <- spells
+      updatedGameState = reduceGameState(history.gameState, s)
+      updatedHistory = History(s :: history.spells, updatedGameState)
+      if updatedHistory.isNotLost
+    } yield updatedHistory
   }
-  (for {
-    history <- nSpells(10)
-    manaSpent <- history.isWon
-  } yield (manaSpent, history)).minBy(_._1)
+
+  def oneMoreSpell(histories: List[History], i: Int): List[History] = {
+    println(i, histories.size)
+    histories.flatMap(updateHistory)
+  }
+
+  val initialGameState: GameState = Battling(Player(50, 500, 0, 0), Boss(58, 9), List())
+  val solutions: List[History] = (1 to 35).foldLeft(List(History(Nil, initialGameState)))(oneMoreSpell)
+  val minManaSpent = (for {
+    s <- solutions
+    manaSpent <- s.isWon
+  } yield manaSpent).min
 }
