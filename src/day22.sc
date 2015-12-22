@@ -53,8 +53,6 @@ object day22 {
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
 
     def effectIsRunning(spell: Spell): Boolean = spellEffects.exists(_.spell == spell)
-    def withSpellEffect(drainedPlayer: Player, spellEffect: SpellEffect): Battle =
-      Battle(drainedPlayer, boss, spellEffect :: spellEffects)
     override def countDownSpellEffects: Battle = Battle(player, boss,
       for (effect <- spellEffects; countedDownEffect <- effect.countDown) yield countedDownEffect)
     override def resolveSpellEffect(spellEffect: SpellEffect): Status = spellEffect.spell match {
@@ -88,9 +86,9 @@ object day22 {
               case Some(survivingBoss) => Battle(drainedPlayer.heal(2), survivingBoss, spellEffects)
             }
           }
-          case Shield => withSpellEffect(drainedPlayer, SpellEffect(Shield, 6))
-          case Poison => withSpellEffect(drainedPlayer, SpellEffect(Poison, 6))
-          case Recharge => withSpellEffect(drainedPlayer, SpellEffect(Recharge, 5))
+          case Shield => Battle(drainedPlayer, boss, SpellEffect(Shield, 6) :: spellEffects)
+          case Poison => Battle(drainedPlayer, boss, SpellEffect(Poison, 6) :: spellEffects)
+          case Recharge => Battle(drainedPlayer, boss, SpellEffect(Recharge, 5) :: spellEffects)
         }
       }
     }
