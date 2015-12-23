@@ -34,12 +34,12 @@ object day23 {
     try {
       val instruction = input(r.ip)
       instruction match {
-        case hlfR(ab) => Some(r.hlf(ab.trim.charAt(0)))
-        case tplR(ab) => Some(r.tpl(ab.trim.charAt(0)))
-        case incR(ab) => Some(r.inc(ab.trim.charAt(0)))
+        case hlfR(ab) => Some(r.hlf(ab.charAt(0)))
+        case tplR(ab) => Some(r.tpl(ab.charAt(0)))
+        case incR(ab) => Some(r.inc(ab.charAt(0)))
         case jmpR(offset) => Some(r.jmp(offset.toInt))
-        case jieR(ab, offset) => Some(r.jie(ab.trim.charAt(0), offset.toInt))
-        case jioR(ab, offset) => Some(r.jio(ab.trim.charAt(0), offset.toInt))
+        case jieR(ab, offset) => Some(r.jie(ab.charAt(0), offset.toInt))
+        case jioR(ab, offset) => Some(r.jio(ab.charAt(0), offset.toInt))
         case _ => None
       }
     }
