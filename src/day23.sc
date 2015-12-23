@@ -31,13 +31,11 @@ object day23 {
     }
   }
   object InstructionParser extends InstructionParser
-  val input = common.loadPackets(List("day23.txt"))
-  val instructions:List[Instruction] = input
-    .map(line => InstructionParser.parseAll(InstructionParser.instruction, line).get)
-  def execute(r: Registers): Registers = {
-    try { execute(instructions(r.ip)(r)) }
-    catch { case e: IndexOutOfBoundsException => r }
+  def execute(program: List[Instruction], initialState: Registers): Registers = {
+    Stream.iterate(initialState)(r => program(r.ip)(r)).find(r => !program.indices.contains(r.ip)).get
   }
-  execute(Registers(0,0,0))
-  execute(Registers(1,0,0))
+  val program:List[Instruction] = common.loadPackets(List("day23.txt"))
+    .map(line => InstructionParser.parseAll(InstructionParser.instruction, line).get)
+  execute(program, Registers(0,0,0))
+  execute(program, Registers(1,0,0))
 }
