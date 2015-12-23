@@ -44,8 +44,8 @@ object day22 {
     def bossIsDead: Option[Int] = None
     def lookingGood: Boolean = false
     def nextTurn(spell: Spell): GameState = {
-      playerTakeHitPart2.
-        resolveSpellEffects
+      playerTakeHitPart2
+        .resolveSpellEffects
         .playerCastSpell(spell)
         .resolveSpellEffects
         .bossHitPlayer
@@ -67,7 +67,7 @@ object day22 {
   }
   case class PlayerLost(player:Player) extends GameState
   case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect], hardmode:Boolean) extends GameState {
-    override def lookingGood = player.manaSpent < 1390 // prune branches that spend too much mana
+    override def lookingGood = player.manaSpent < 2000 // prune branches that spend too much mana
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
 
     def effectIsRunning(spell: Spell): Boolean = spellEffects.exists(_.spell == spell)
@@ -129,7 +129,7 @@ object day22 {
     gameStates.flatMap(_.nextTurn)
   }
   val hardmode: Boolean = false // part 1 / 2
-  val initialGameState: GameState = Battle(Player(50, 500, 0, Nil), Boss(58, 9), Nil, hardmode)
+  val initialGameState: GameState = Battle(Player(50, 500, 0, Nil), Boss(71, 10), Nil, hardmode)
   val solutions: List[GameState] = (1 to 30).foldLeft(List(initialGameState))(nextTurn)
   val minManaSpent = (for {
     s <- solutions
