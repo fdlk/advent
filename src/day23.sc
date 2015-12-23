@@ -18,21 +18,16 @@ object day23 {
     def inc = "inc"~>register ^^ { ab => r:Registers => r.update(ab, _+1) }
     def jmp = "jmp"~>offset ^^ { offset => r:Registers => r.jmp(offset) }
     def jie = "jie"~>register~(","~>offset) ^^ {
-      case ab~offset => r:Registers =>
-        if(r.read(ab) % 2 == 0)
-          r.jmp(offset.toInt)
-        else r.jmp(1)
+      case ab~offset => r:Registers => r.jmp(if(r.read(ab) % 2 == 0) offset else 1)
     }
     def jio = "jio"~>register~(","~>offset) ^^ {
-      case ab~offset => r:Registers =>
-        if(r.read(ab) == 1)
-          r.jmp(offset.toInt)
-        else r.jmp(1)
+      case ab~offset => r:Registers =>r.jmp(if(r.read(ab) == 1) offset else 1)
     }
   }
   object InstructionParser extends InstructionParser
   def execute(program: List[Instruction], initialState: Registers): Registers = {
-    Stream.iterate(initialState)(r => program(r.ip)(r)).find(r => !program.indices.contains(r.ip)).get
+    Stream.iterate(initialState)(r => program(r.ip)(r))
+      .find(r => !program.indices.contains(r.ip)).get
   }
   val program:List[Instruction] = common.loadPackets(List("day23.txt"))
     .map(line => InstructionParser.parseAll(InstructionParser.instruction, line).get)
