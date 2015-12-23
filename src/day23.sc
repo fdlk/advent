@@ -1,6 +1,6 @@
 object day23 {
   val input: List[String] = common.loadPackets(List("day23.txt"))
-  case class Registers(a: Int, b: Int, ip: Int) {
+  case class Registers(a: Long, b: Long, ip: Int) {
     def hlf(ab: Char) = ab match {
       case 'a' => Registers(a / 2, b, ip + 1)
       case 'b' => Registers(a, b / 2, ip + 1)
