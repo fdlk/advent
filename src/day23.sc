@@ -1,27 +1,18 @@
 object day23 {
   val input: List[String] = common.loadPackets(List("day23.txt"))
   case class Registers(a: Long, b: Long, ip: Int) {
-    def hlf(ab: Char) = ab match {
-      case 'a' => Registers(a / 2, b, ip + 1)
-      case 'b' => Registers(a, b / 2, ip + 1)
+    def update(ab: Char, f: Long => Long): Registers = ab match {
+      case 'a' => Registers(f(a), b, ip+1)
+      case 'b' => Registers(a, f(b), ip+1)
     }
-    def tpl(ab: Char) = ab match {
-        case 'a' => Registers(a * 3, b, ip + 1)
-        case 'b' => Registers(a, b * 3, ip + 1)
-    }
-    def inc(ab: Char) = ab match {
-      case 'a' => Registers(a + 1, b, ip + 1)
-      case 'b' => Registers(a, b + 1, ip + 1)
-    }
+    def read(ab: Char): Long = ab match {case 'a' => a; case 'b' => b}
+
+    def hlf(ab: Char) = update(ab, _/2)
+    def tpl(ab: Char) = update(ab, _*3)
+    def inc(ab: Char) = update(ab, _+1)
     def jmp(offset: Int) = Registers(a, b, ip + offset)
-    def jie(ab: Char, offset: Int) = ab match {
-      case 'a' => if (a % 2 == 0) jmp(offset) else jmp(1)
-      case 'b' => if (b % 2 == 0) jmp(offset) else jmp(1)
-    }
-    def jio(ab: Char, offset: Int) = ab match {
-      case 'a' => if (a == 1) jmp(offset) else jmp(1)
-      case 'b' => if (b == 1) jmp(offset) else jmp(1)
-    }
+    def jie(ab: Char, offset: Int) = if(read(ab)% 2 == 0) jmp(offset) else jmp(1)
+    def jio(ab: Char, offset: Int) = if(read(ab) == 1) jmp(offset) else jmp(1)
   }
   val hlfR = """hlf ([ab])""".r
   val tplR = """tpl ([ab])""".r
