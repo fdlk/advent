@@ -10,7 +10,7 @@ object day24 {
     candidate => divide(input.toSet -- candidate.toSet, 3, input.sum/4, 4).isDefined
   ).map(_.product)
   /**
-    * Divide items into parts groups, each with a sum of size Long
+    * Divide items into parts groups, each with a sum of size sum
     */
   def divide (items: Set[Long], parts: Int, sum: Long, minPartitionSize: Int): Option[List[Set[Long]]] = {
     if (parts == 1){
