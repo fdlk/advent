@@ -31,12 +31,12 @@ object day21 {
 
   case class Hero(name: String, hp: Int, damage: Int, armor: Int) {
     def takeHit(hitDamage: Int): Option[Hero] = {
-      val damageTaken = Math.max(hitDamage - armor, 1)
+      val damageTaken = (hitDamage - armor) max 1
       if (damageTaken >= hp) None
-      else Some(Hero(name, hp - damageTaken, damage, armor))
+      else Some(copy(hp=hp - damageTaken))
     }
     def don(item: Item): Hero = {
-      Hero(name, hp, damage + item.damage, armor + item.armor)
+      copy(damage=damage + item.damage, armor=armor + item.armor)
     }
   }
 
