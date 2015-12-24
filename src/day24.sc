@@ -1,9 +1,9 @@
 object day24 {
   val input = common.loadPackets(List("day24.txt")).map(_.toLong).reverse.toSet
 
-  input.sum / 4
+  input.toList.combinations(6).toList.filter(_.sum == input.sum / 3).map(_.toSet).distinct
+  .map(_.toList.product).sorted.head
 
-  val comp1 = input.toList.combinations(4).toList.filter(_.sum == 390).map(_.toSet).distinct
-  val x:List[Set[Long]] = comp1.toList
-  x.map(_.toList.product).sorted.head
+  input.toList.combinations(4).toList.filter(_.sum == input.sum / 4).map(_.toSet).distinct
+  .map(_.toList.product).sorted.head
 }
