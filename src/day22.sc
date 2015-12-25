@@ -30,17 +30,11 @@ object day22 {
   }
 
   case class Spell(name: String, mana: Int)
-
   object Recharge extends Spell("Recharge", 229)
-
   object MagicMissile extends Spell("Magic Missile", 53)
-
   object Drain extends Spell("Drain", 73)
-
   object Shield extends Spell("Shield", 113)
-
   object Poison extends Spell("Poison", 173)
-
   case class SpellEffect(spell: Spell, turnsLeft: Int) {
     def countDown: Option[SpellEffect] =
       if (turnsLeft == 1) None
@@ -48,8 +42,6 @@ object day22 {
   }
 
   abstract class GameState {
-    def bossIsDead: Option[Int] = None
-
     def flatMap(f: Battle => GameState): GameState = this match {
       case b: Battle => f(b)
       case _ => this
@@ -61,17 +53,12 @@ object day22 {
   }
 
   case class PlayerWon(player: Player) extends GameState {
-    println(bossIsDead)
-
-    override def bossIsDead = Some(player.spellsCast.map(_.mana).sum)
-
+    println(player.manaSpent)
     override def nextTurn = List(this)
   }
 
   case class PlayerLost(player: Player) extends GameState
-
   case class ManaGuzzler(player: Player) extends GameState
-
   case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect], hardmode: Boolean) extends GameState {
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
 
@@ -172,7 +159,7 @@ object day22 {
   val solutions: List[GameState] = Stream.iterate(List(initialGameState))(nextTurn).drop(30).head
   val minManaSpent = (for {
     s <- solutions
-    manaSpent <- s.bossIsDead
+    manaSpent <- s match {case PlayerWon(player) => Some(player.manaSpent); case _ => None }
   } yield manaSpent).min
   // Sanity check:
   val solution: List[Spell] = List(Poison, Recharge, MagicMissile, Poison, Recharge, Shield, Poison, Drain, MagicMissile)
