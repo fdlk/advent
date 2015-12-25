@@ -30,11 +30,17 @@ object day22 {
   }
 
   case class Spell(name: String, mana: Int)
+
   object Recharge extends Spell("Recharge", 229)
+
   object MagicMissile extends Spell("Magic Missile", 53)
+
   object Drain extends Spell("Drain", 73)
+
   object Shield extends Spell("Shield", 113)
+
   object Poison extends Spell("Poison", 173)
+
   case class SpellEffect(spell: Spell, turnsLeft: Int) {
     def countDown: Option[SpellEffect] =
       if (turnsLeft == 1) None
@@ -56,17 +62,26 @@ object day22 {
 
   case class PlayerWon(player: Player) extends GameState {
     println(bossIsDead)
+
     override def bossIsDead = Some(player.spellsCast.map(_.mana).sum)
+
     override def nextTurn = List(this)
   }
 
   case class PlayerLost(player: Player) extends GameState
+
   case class ManaGuzzler(player: Player) extends GameState
+
   case class Battle(player: Player, boss: Boss, spellEffects: List[SpellEffect], hardmode: Boolean) extends GameState {
     override def toString = player.toString + "\n" + boss.toString + "\n" + spellEffects
+
     def effectIsRunning(spell: Spell): Boolean = spellEffects.exists(_.spell == spell)
-    def countDownSpellEffects: Battle = copy(spellEffects =
-      for (effect <- spellEffects; countedDownEffect <- effect.countDown) yield countedDownEffect)
+
+    def countDownSpellEffects: Battle = copy(spellEffects = for {
+      effect <- spellEffects
+      countedDownEffect <- effect.countDown
+    } yield countedDownEffect)
+
     def resolveSpellEffect(spellEffect: SpellEffect): GameState = spellEffect.spell match {
       case Shield => copy(player = player.withArmor(7))
       case Poison => boss.takeDamage(3) match {
@@ -138,7 +153,7 @@ object day22 {
       } yield step6
     }
 
-    override def nextTurn : List[GameState] = {
+    override def nextTurn: List[GameState] = {
       for {
         spell <- List(Recharge, MagicMissile, Poison, Shield, Drain)
         updatedGameState = flatMap(_.nextTurn(spell))
@@ -150,6 +165,7 @@ object day22 {
     println(gameStates.size)
     gameStates.flatMap(_.nextTurn)
   }
+
   // part 1 / 2
   val hardmode: Boolean = false
   val initialGameState: GameState = Battle(Player(50, 500, 0, Nil), Boss(58, 9), Nil, hardmode)
