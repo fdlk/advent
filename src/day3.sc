@@ -13,8 +13,8 @@ object day3 {
   def houses(input: Seq[Char]): Set[Position] = {
    input.toList.scanLeft((0,0))(next).toSet
   }
-  houses(input) size
+  houses(input).size
 
-  val (santa, robo) = input.zipWithIndex.partition({ case (c, i) => i % 2 == 0 })
-  (houses(santa.unzip._1) ++ houses(robo.unzip._1)) size
+  val (santa, robo) = input.zipWithIndex partition { case(_, i) => i % 2 == 0 }
+  (houses(santa.unzip._1) ++ houses(robo.unzip._1)).size
 }
