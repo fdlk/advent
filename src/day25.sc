@@ -6,10 +6,8 @@ object day25 {
     topRight - row
   }
 
-  val indexOfTicket = index(2981, 3075)
-
   def ticket(index: Int): BigInt = 20151125 * BigInt(252533).modPow(index, 33554393) % 33554393
 
-  ticket(indexOfTicket)
+  ticket(index(2981, 3075))
 }
 
