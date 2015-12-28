@@ -1,0 +1,14 @@
+public class D {
+  public static void main(String[] a) {
+      String i = "<your input str>";
+      Pattern p = Pattern.compile("\\{[^\\{]+?\\}");
+      for(Matcher m = p.matcher(i); m.find(); m = p.matcher(i)) i = i.replaceFirst(""+p, ""+f(m.group()));
+      System.out.print(f(i));
+  }
+
+  public static int f(String s) {
+      int r=0;
+      for(Matcher m = Pattern.compile("-?\\d+").matcher(s); m.find() && !s.contains(":\"r");) r+=new Integer(m.group());
+      return r;
+  }
+}

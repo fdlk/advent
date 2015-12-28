@@ -1,21 +1,14 @@
-import scala.util.parsing.json.JSON
+import scala.io.Source
+import scala.util.parsing.combinator.JavaTokenParsers
 
-object day12 {
-  val input:String = common.loadPackets(List("day12", "day12.txt"))(0)
-  val numbers = """-?[0-9]+""".r
-  numbers.findAllMatchIn(input).map { _.toString.toInt }.sum
+val input = Source.fromInputStream(getClass.getResourceAsStream("day12/day12.txt")).mkString
 
-  def sum(tree: Any): Int = tree match {
-    case map: Map[String, Any] if map.values.exists { _ == "red" } => 0
-    case map: Map[String, Any] => {
-      map.map({ case (k: String, v: Any) => sum(k) + sum(v) }).sum
-    }
-    case list: List[Any] => {
-      list.map(sum).sum
-    }
-    case s: String => 0
-    case d: Double => d.toInt
-  }
-
-  sum(JSON.parseFull(input).get)
+object JsonParser extends JavaTokenParsers {
+  def obj = "{" ~> repsep(member, ",") <~ "}" ^^ { l => if (l contains None) 0 else l.flatten.sum }
+  def arr = "[" ~> repsep(value, ",") <~ "]" ^^ {_.flatten.sum}
+  def member = (stringLiteral <~ ":") ~> value
+  def value: Parser[Option[Int]] = ((obj | arr) ^^ {Some(_)}
+    | stringLiteral ^^ { l => if (l.charAt(1) == 'r') None else Some(0) }
+    | floatingPointNumber ^^ { x => Some(x.toInt) })
 }
+JsonParser.parseAll(JsonParser.value, input)
