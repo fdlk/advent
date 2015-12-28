@@ -8,7 +8,7 @@ object JsonParser extends JavaTokenParsers {
   def arr = "[" ~> repsep(value, ",") <~ "]" ^^ {_.flatten.sum}
   def member = (stringLiteral <~ ":") ~> value
   def value: Parser[Option[Int]] = ((obj | arr) ^^ {Some(_)}
-    | stringLiteral ^^ { l => if (l.charAt(1) == 'r') None else Some(0) }
+    | stringLiteral ^^ { l => if (l == "\"red\"") None else Some(0) }
     | floatingPointNumber ^^ { x => Some(x.toInt) })
 }
 JsonParser.parseAll(JsonParser.value, input)
