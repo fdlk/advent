@@ -1,5 +1,4 @@
 import scala.util.parsing.combinator.JavaTokenParsers
-
 object day7 {
   type Signal = Int
   type State = Map[String, Signal]
@@ -60,12 +59,7 @@ object day7 {
       _.toInt
     }
 
-    def connector: Parser[String] =
-      """[a-z]{1,2}""".r ^^ { x => {
-        println(x);
-        x
-      }
-      }
+    def connector: Parser[String] = """[a-z]{1,2}""".r
 
     def connection: Parser[(String, Rule)] = (rule <~ "->") ~ connector ^^ { case rule ~ connector => (connector, rule) }
 
@@ -89,26 +83,14 @@ object day7 {
   }
 
   object WireParser extends WireParser
-
   val input = common.loadPackets(List("day7", "day7.txt"))
-  val rules = input.map { line => {
-    WireParser.parse(WireParser.connection, line).get
+  val rules = input.map { line => {WireParser.parse(WireParser.connection, line).get}}
+  def applyRule: (State, (String, Rule)) => State = {
+    case (state, (name, r)) =>
+      (for {
+        value <- r.evaluate(state)
+      } yield state.updated(name, value.toChar.toInt)).getOrElse(state)
   }
-  }
-
-  def reduce(state: State, e: (String, Rule)): State = {
-    (e match {
-      case (name, r: Rule) =>
-        for {value <- r.evaluate(state)
-             unsignedValue = value.toChar.toInt}
-          yield state.updated(name, unsignedValue)
-    }).getOrElse(state)
-  }
-
-  def update(state: State): State = {
-    val updated = rules.foldLeft(state)(reduce)
-    if (state != updated) update(updated) else updated
-  }
-
-  update(Map())("a")
+  val stream = Stream.iterate(Map[String, Signal]())(rules.foldLeft(_)(applyRule))
+  (stream.zip(stream.tail) find {case (a,b) => a == b }).get._1("a")
 }
